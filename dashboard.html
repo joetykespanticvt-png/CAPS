@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPS Portal - Feed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .bg-caps-primary { background-color: #0F3854; }
+    .text-caps-primary { color: #0F3854; }
+    .border-caps-primary { border-color: #0F3854; }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-caps-primary text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-white/10 rounded-lg">
+            <i data-lucide="home" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-none">CAPS Portal</h1>
+            <p class="text-[11px] text-slate-300 font-medium hidden sm:block">Barangay San Antonio De Padua II</p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-md mx-8">
+          <div class="relative w-full">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="feed-search" onkeyup="filterFeedBySearch()" placeholder="Search reports, puroks, or issues..." class="w-full pl-9 pr-4 py-1.5 bg-slate-800/60 text-white placeholder-slate-400 text-sm rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button onclick="openReportModal()" class="bg-teal-500 hover:bg-teal-600 text-slate-950 font-semibold px-3.5 py-1.5 rounded-lg text-sm flex items-center space-x-1.5 transition shadow">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">New Report</span>
+          </button>
+
+          <div class="flex items-center space-x-2 border-l border-slate-700 pl-3 ml-2">
+            <a href="profile.html" class="w-8 h-8 rounded-full bg-teal-400 text-slate-950 font-bold flex items-center justify-center text-xs" id="user-avatar">
+              JD
+            </a>
+            <div class="hidden lg:block text-left">
+              <p class="text-xs font-semibold leading-tight" id="user-display-name">Juan Dela Cruz</p>
+              <p class="text-[10px] text-teal-300">Verified Resident</p>
+            </div>
+            <button onclick="logout()" title="Logout" class="text-slate-300 hover:text-white p-1 rounded-md hover:bg-white/10 transition">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside class="lg:col-span-3 space-y-4">
+      <!-- STATS CARD -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Quick Stats</h3>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <span class="block text-2xl font-extrabold text-caps-primary" id="active-concerns-count">0</span>
+            <span class="text-[11px] text-slate-500 font-medium">Active Concerns</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <span class="block text-2xl font-extrabold text-emerald-600">0</span>
+            <span class="text-[11px] text-slate-500 font-medium">Resolved This Month</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN NAVIGATION MENU -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigation</h3>
+        <nav class="space-y-1">
+          <a href="dashboard.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-bold rounded-lg bg-slate-100 text-caps-primary">
+            <i data-lucide="rss" class="w-4 h-4"></i>
+            <span>Community Feed</span>
+          </a>
+          <a href="my-reports.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>My Reports</span>
+          </a>
+          <a href="profile.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
+            <i data-lucide="user" class="w-4 h-4"></i>
+            <span>Profile Settings</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- CENTER FEED CONTENT -->
+    <section class="lg:col-span-6 space-y-4">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-3 w-full">
+          <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-xs" id="post-input-avatar">
+            YOU
+          </div>
+          <button onclick="openReportModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs rounded-full px-4 py-2.5 w-full text-left transition border border-slate-200">
+            Have a concern in San Antonio De Padua II? Report it here...
+          </button>
+        </div>
+      </div>
+
+      <!-- FEED LIST (EMPTY STATE INITIALLY) -->
+      <div id="reports-feed" class="space-y-4">
+        <!-- Empty State Container -->
+        <div id="empty-state" class="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-3">
+          <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+            <i data-lucide="inbox" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-bold text-slate-800 text-sm">No community reports yet</h3>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">Be the first to post a concern or report an issue in Barangay San Antonio De Padua II.</p>
+          <button onclick="openReportModal()" class="inline-flex items-center space-x-1.5 bg-caps-primary text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-slate-800 transition">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Submit First Report</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="lg:col-span-3 space-y-4">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Barangay Hotlines</h3>
+        <ul class="space-y-2 text-xs">
+          <li class="p-2.5 bg-red-50 rounded-lg border border-red-100 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-red-900">Barangay Hall Desk</p>
+              <p class="text-red-700 text-[11px]">(046) 416-XXXX</p>
+            </div>
+            <a href="tel:0464160000" class="p-1.5 bg-red-600 text-white rounded-md"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
+          </li>
+          <li class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-slate-800">Health Station</p>
+              <p class="text-slate-600 text-[11px]">0917-123-XXXX</p>
+            </div>
+            <a href="tel:09171230000" class="p-1.5 bg-caps-primary text-white rounded-md"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- MODAL: SUBMIT NEW REPORT -->
+  <div id="report-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-slate-900">Submit Barangay Concern Report</h3>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="submitNewReport(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Issue Title</label>
+          <input type="text" id="modal-title" required placeholder="Short summary of the issue" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+            <select id="modal-category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="Waste Management">Waste Management</option>
+              <option value="Public Safety">Public Safety</option>
+              <option value="Emergency">Emergency</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Purok / Sitio</label>
+            <input type="text" id="modal-purok" required placeholder="e.g. Purok 4" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Details & Description</label>
+          <textarea id="modal-desc" rows="3" required placeholder="Provide clear details to help barangay officials respond quickly..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeReportModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-caps-primary text-white rounded-lg hover:bg-slate-800">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Load Local User Details
+    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz', email: 'juan@example.com' };
+    document.getElementById('user-display-name').innerText = currentUser.name;
+    const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    document.getElementById('user-avatar').innerText = initials;
+    document.getElementById('post-input-avatar').innerText = initials;
+
+    // Load Saved Reports
+    function loadReports() {
+      const reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
+      const feed = document.getElementById('reports-feed');
+      const emptyState = document.getElementById('empty-state');
+
+      // Update counter
+      document.getElementById('active-concerns-count').innerText = reports.length;
+
+      if (reports.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      feed.innerHTML = '';
+
+      reports.forEach((rep, index) => {
+        const article = document.createElement('article');
+        article.className = 'feed-item bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden';
+        article.innerHTML = `
+          <div class="p-4 sm:p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-caps-primary text-white font-bold flex items-center justify-center text-xs">
+                  ${rep.authorInitials || 'JD'}
+                </div>
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <h4 class="font-bold text-slate-900 text-sm">${rep.authorName || 'Resident'}</h4>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded font-medium">Verified Resident</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">${rep.purok} • ${rep.date}</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">${rep.status || 'Pending'}</span>
+            </div>
+
+            <div class="mt-3">
+              <span class="text-[10px] font-bold text-caps-primary uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded">${rep.category}</span>
+              <h3 class="font-bold text-slate-900 text-base mt-1">${rep.title}</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">${rep.description}</p>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <button onclick="toggleUpvote(this)" class="upvote-btn flex items-center space-x-1.5 text-slate-500 hover:text-caps-primary font-semibold px-2 py-1 rounded hover:bg-slate-50 transition">
+                <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                <span>Upvote</span> (<span class="count">${rep.upvotes || 1}</span>)
+              </button>
+            </div>
+          </div>
+        `;
+        feed.appendChild(article);
+      });
+      lucide.createIcons();
+    }
+
+    function openReportModal() { document.getElementById('report-modal').classList.remove('hidden'); }
+    function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+    function submitNewReport(e) {
+      e.preventDefault();
+      const title = document.getElementById('modal-title').value;
+      const category = document.getElementById('modal-category').value;
+      const purok = document.getElementById('modal-purok').value;
+      const description = document.getElementById('modal-desc').value;
+
+      const reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
+      const newReport = {
+        id: Date.now(),
+        title,
+        category,
+        purok,
+        description,
+        authorName: currentUser.name,
+        authorInitials: initials,
+        status: 'Pending',
+        upvotes: 1,
+        date: 'Just now'
+      };
+
+      reports.unshift(newReport);
+      localStorage.setItem('caps_reports', JSON.stringify(reports));
+
+      // Reset & Refresh
+      document.getElementById('modal-title').value = '';
+      document.getElementById('modal-desc').value = '';
+      document.getElementById('modal-purok').value = '';
+      closeReportModal();
+      loadReports();
+    }
+
+    function toggleUpvote(btn) {
+      const countSpan = btn.querySelector('.count');
+      let count = parseInt(countSpan.innerText);
+      if (btn.classList.contains('text-caps-primary')) {
+        btn.classList.remove('text-caps-primary');
+        btn.classList.add('text-slate-500');
+        countSpan.innerText = count - 1;
+      } else {
+        btn.classList.add('text-caps-primary');
+        btn.classList.remove('text-slate-500');
+        countSpan.innerText = count + 1;
+      }
+    }
+
+    function filterFeedBySearch() {
+      const query = document.getElementById('feed-search').value.toLowerCase();
+      const items = document.querySelectorAll('.feed-item');
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    // Initialize on page load
+    loadReports();
+  </script>
+</body>
+</html>
