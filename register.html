@@ -4,18 +4,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CAPS Portal | Registration</title>
+<title>CAPS Portal - Create Account</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
     --green: #075c39;
-    --dark-green: #03452d;
+    --dark: #03452d;
     --accent: #25a96b;
-    --light-green: #dff7e9;
+    --light: #dff7e9;
     --text: #15251d;
-    --muted: #65746d;
+    --muted: #68766f;
     --border: #dce4e9;
 }
 
@@ -27,7 +27,7 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background: #f5f8f6;
+    background: #f3f8f5;
     color: var(--text);
 }
 
@@ -37,40 +37,23 @@ body {
     height: 88px;
     padding: 0 4.5%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     background: linear-gradient(110deg, #03452d, #005536, #03452d);
     color: white;
-    position: relative;
-    overflow: hidden;
-}
-
-.header::after {
-    content: "";
-    position: absolute;
-    width: 350px;
-    height: 350px;
-    border-radius: 50%;
-    background: rgba(0,0,0,.09);
-    right: 22%;
-    top: -285px;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 24px;
-    z-index: 1;
+    gap: 22px;
 }
 
 .logo {
     width: 60px;
     height: 54px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding-right: 15px;
     border-right: 2px solid rgba(255,255,255,.45);
-    padding-right: 20px;
 }
 
 .logo svg {
@@ -86,13 +69,12 @@ body {
 
 .brand p {
     font-size: 14px;
-    margin-top: 3px;
     color: #d0e7d9;
+    margin-top: 3px;
 }
 
 .login {
     font-size: 13px;
-    z-index: 1;
 }
 
 .login a {
@@ -104,12 +86,6 @@ body {
     padding: 11px 19px;
     margin-left: 12px;
     font-weight: 700;
-    transition: .2s;
-}
-
-.login a:hover {
-    background: white;
-    color: var(--green);
 }
 
 /* MAIN BACKGROUND */
@@ -125,64 +101,62 @@ body {
     background: linear-gradient(135deg, #f5f9f7, #edf5f0);
 }
 
-/* DECORATIVE CURVES */
-
 .curves {
     position: absolute;
     inset: 0;
-    overflow: hidden;
     pointer-events: none;
+    overflow: hidden;
 }
 
 .curve {
     position: absolute;
-    border: 1px solid rgba(6, 104, 62, .18);
+    border: 1px solid rgba(6,104,62,.18);
     border-radius: 50%;
 }
 
-.curve-1 {
+.curve.one {
     width: 850px;
     height: 850px;
     top: -650px;
     left: -300px;
 }
 
-.curve-2 {
+.curve.two {
     width: 900px;
     height: 900px;
     bottom: -700px;
     right: -400px;
 }
 
-.curve-3 {
+.curve.three {
     width: 700px;
     height: 700px;
     top: 30%;
     right: -550px;
-    border: 50px solid rgba(26, 153, 91, .06);
+    border: 50px solid rgba(26,153,91,.06);
 }
 
-/* REGISTRATION CARD */
+/* MAIN CARD */
 
 .card {
     width: 100%;
     max-width: 1205px;
     min-height: 715px;
     display: grid;
-    grid-template-columns: 0.85fr 1.15fr;
+    grid-template-columns: .85fr 1.15fr;
     background: white;
     border: 1px solid #e1e8e3;
     border-radius: 22px;
     overflow: hidden;
     position: relative;
     z-index: 2;
-    box-shadow: 0 18px 45px rgba(0, 54, 31, .13);
+    box-shadow: 0 18px 45px rgba(0,54,31,.13);
 }
 
 /* LEFT PANEL */
 
 .left-panel {
-    background: linear-gradient(145deg, #087247, #03472f 75%);
+    background: linear-gradient(145deg,#087247,#03472f 75%);
     padding: 60px 45px;
     display: flex;
     justify-content: center;
@@ -199,20 +173,9 @@ body {
     width: 600px;
     height: 600px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(36,185,102,.23), transparent 68%);
+    background: radial-gradient(circle,rgba(36,185,102,.23),transparent 68%);
     top: -330px;
     right: -200px;
-}
-
-.left-panel::after {
-    content: "";
-    position: absolute;
-    width: 650px;
-    height: 650px;
-    border: 1px solid rgba(255,255,255,.09);
-    border-radius: 50%;
-    bottom: -470px;
-    left: -200px;
 }
 
 .left-content {
@@ -220,8 +183,6 @@ body {
     position: relative;
     z-index: 2;
 }
-
-/* COMMUNITY LOGO */
 
 .community-logo {
     margin-bottom: 20px;
@@ -266,7 +227,7 @@ body {
     margin: auto;
 }
 
-/* GREEN WAVES */
+/* DECORATIVE WAVES */
 
 .wave-container {
     position: absolute;
@@ -288,13 +249,13 @@ body {
 
 .wave-1 {
     bottom: -100px;
-    background: linear-gradient(100deg, #006139, #38b76b);
+    background: linear-gradient(100deg,#006139,#38b76b);
     transform: rotate(-8deg);
 }
 
 .wave-2 {
     bottom: -130px;
-    background: linear-gradient(90deg, #087b49, #66dc80);
+    background: linear-gradient(90deg,#087b49,#66dc80);
     transform: rotate(5deg);
 }
 
@@ -340,7 +301,7 @@ body {
     margin-bottom: 27px;
 }
 
-/* FORM GRID */
+/* REGISTRATION FORM */
 
 .form-grid {
     display: grid;
@@ -445,12 +406,12 @@ body {
     font-weight: 700;
 }
 
-/* CREATE BUTTON */
+/* BUTTON */
 
 .create-btn {
     width: 100%;
     height: 49px;
-    background: linear-gradient(100deg, #075638, #00623d);
+    background: linear-gradient(100deg,#075638,#00623d);
     color: white;
     border: none;
     border-radius: 11px;
@@ -477,7 +438,7 @@ body {
 
 .footer {
     min-height: 76px;
-    background: linear-gradient(100deg, #03452d, #005436);
+    background: linear-gradient(100deg,#03452d,#005436);
     color: white;
     display: flex;
     align-items: center;
@@ -493,144 +454,140 @@ body {
     font-weight: 600;
 }
 
-.footer a:hover {
-    color: white;
-}
-
 .footer-divider {
     height: 20px;
     width: 1px;
     background: rgba(255,255,255,.4);
 }
 
-/* RESPONSIVE DESIGN */
+/* RESPONSIVE */
 
-@media(max-width: 1000px) {
+@media(max-width:1000px) {
     .card {
-        grid-template-columns: .8fr 1.2fr;
+        grid-template-columns:.8fr 1.2fr;
     }
 
     .right-panel {
-        padding: 35px;
+        padding:35px;
     }
 
     .left-panel {
-        padding: 35px 25px;
+        padding:35px 25px;
     }
 
     .portal-title {
-        font-size: 38px;
+        font-size:38px;
     }
 
     .left-panel h1 {
-        font-size: 31px;
+        font-size:31px;
     }
 
     .right-panel h2 {
-        font-size: 29px;
+        font-size:29px;
     }
 }
 
-@media(max-width: 750px) {
+@media(max-width:750px) {
     .main {
-        padding: 25px 15px;
+        padding:25px 15px;
     }
 
     .card {
-        max-width: 550px;
-        grid-template-columns: 1fr;
+        max-width:550px;
+        grid-template-columns:1fr;
     }
 
     .left-panel {
-        min-height: 400px;
-        padding: 45px 25px;
+        min-height:400px;
+        padding:45px 25px;
     }
 
     .right-panel {
-        padding: 40px 30px;
+        padding:40px 30px;
     }
 
     .left-panel h1 {
-        font-size: 32px;
+        font-size:32px;
     }
 
     .right-panel h2 {
-        font-size: 28px;
+        font-size:28px;
     }
 }
 
-@media(max-width: 480px) {
+@media(max-width:480px) {
     .header {
-        height: 75px;
-        padding: 0 15px;
+        height:75px;
+        padding:0 15px;
     }
 
     .logo {
-        display: none;
+        display:none;
     }
 
     .brand h2 {
-        font-size: 19px;
+        font-size:19px;
     }
 
     .brand p {
-        font-size: 10px;
+        font-size:10px;
     }
 
     .login {
-        font-size: 10px;
+        font-size:10px;
     }
 
     .login a {
-        padding: 8px 10px;
-        margin-left: 3px;
+        padding:8px 10px;
+        margin-left:3px;
     }
 
     .left-panel {
-        min-height: 350px;
+        min-height:350px;
     }
 
     .portal-title {
-        font-size: 35px;
+        font-size:35px;
     }
 
     .community-logo svg {
-        width: 100px;
-        height: 80px;
+        width:100px;
+        height:80px;
     }
 
     .left-panel h1 {
-        font-size: 27px;
+        font-size:27px;
     }
 
     .left-description {
-        font-size: 14px;
+        font-size:14px;
     }
 
     .right-panel {
-        padding: 30px 20px;
+        padding:30px 20px;
     }
 
     .right-panel h2 {
-        font-size: 24px;
+        font-size:24px;
     }
 
     .subtitle {
-        font-size: 13px;
+        font-size:13px;
     }
 
     .form-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
     }
 
     .form-group.full {
-        grid-column: span 1;
+        grid-column:span 1;
     }
 
     .footer {
-        flex-wrap: wrap;
-        gap: 12px;
-        font-size: 11px;
+        flex-wrap:wrap;
+        gap:12px;
+        font-size:11px;
     }
 }
 </style>
@@ -645,7 +602,6 @@ body {
     <div class="brand">
 
         <div class="logo">
-            <!-- Community SVG logo -->
             <svg viewBox="0 0 100 100" fill="none"
                  xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 42 L50 9 L90 42"
@@ -684,66 +640,46 @@ body {
 </header>
 
 
-<!-- MAIN CONTENT -->
+<!-- MAIN -->
 
 <main class="main">
 
-    <!-- BACKGROUND CURVES -->
     <div class="curves">
-        <div class="curve curve-1"></div>
-        <div class="curve curve-2"></div>
-        <div class="curve curve-3"></div>
+        <div class="curve one"></div>
+        <div class="curve two"></div>
+        <div class="curve three"></div>
     </div>
 
     <section class="card">
 
-        <!-- LEFT BRANDING PANEL -->
+        <!-- LEFT PANEL -->
 
         <div class="left-panel">
 
             <div class="left-content">
 
                 <div class="community-logo">
-
-                    <svg viewBox="0 0 150 120"
-                         fill="none"
+                    <svg viewBox="0 0 150 120" fill="none"
                          xmlns="http://www.w3.org/2000/svg">
-
                         <path d="M12 48 L75 5 L138 48"
-                              stroke="white"
-                              stroke-width="9"
+                              stroke="white" stroke-width="9"
                               stroke-linecap="round"
                               stroke-linejoin="round"/>
-
                         <path d="M25 45 V107 H125 V45"
-                              stroke="white"
-                              stroke-width="9"
+                              stroke="white" stroke-width="9"
                               stroke-linejoin="round"/>
-
-                        <circle cx="75" cy="52" r="12"
-                                fill="white"/>
-
-                        <circle cx="45" cy="68" r="9"
-                                fill="white"/>
-
-                        <circle cx="105" cy="68" r="9"
-                                fill="white"/>
-
+                        <circle cx="75" cy="52" r="12" fill="white"/>
+                        <circle cx="45" cy="68" r="9" fill="white"/>
+                        <circle cx="105" cy="68" r="9" fill="white"/>
                         <path d="M49 104 V89 C49 76 60 68 75 68 C90 68 101 76 101 89 V104"
                               fill="white"/>
-
                         <path d="M29 104 V94 C29 84 35 79 45 79"
-                              stroke="white"
-                              stroke-width="8"
+                              stroke="white" stroke-width="8"
                               stroke-linecap="round"/>
-
                         <path d="M121 104 V94 C121 84 115 79 105 79"
-                              stroke="white"
-                              stroke-width="8"
+                              stroke="white" stroke-width="8"
                               stroke-linecap="round"/>
-
                     </svg>
-
                 </div>
 
                 <div class="portal-title">
@@ -766,8 +702,6 @@ body {
 
             </div>
 
-            <!-- DECORATIVE WAVES -->
-
             <div class="wave-container">
                 <div class="wave wave-1"></div>
                 <div class="wave wave-2"></div>
@@ -777,12 +711,12 @@ body {
         </div>
 
 
-        <!-- RIGHT REGISTRATION PANEL -->
+        <!-- RIGHT PANEL -->
 
         <div class="right-panel">
 
             <div class="badge">
-                JOIN OUR COMMUNITY
+                JOIN YOUR COMMUNITY
             </div>
 
             <h2>Create your resident account.</h2>
@@ -792,57 +726,38 @@ body {
                 A few details are all you need to get started.
             </p>
 
-
-            <!-- REGISTRATION FORM -->
-
             <form id="registerForm">
 
                 <div class="form-grid">
 
                     <div class="form-group">
                         <label for="firstName">First name</label>
-                        <input
-                            type="text"
-                            id="firstName"
-                            placeholder="Enter First name"
-                            required>
+                        <input type="text" id="firstName"
+                               placeholder="First name" required>
                     </div>
 
                     <div class="form-group">
                         <label for="lastName">Last name</label>
-                        <input
-                            type="text"
-                            id="lastName"
-                            placeholder="Enter Last name"
-                            required>
+                        <input type="text" id="lastName"
+                               placeholder="Last name" required>
                     </div>
 
                     <div class="form-group">
                         <label for="email">Email address</label>
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="Enter your email"
-                            required>
+                        <input type="email" id="email"
+                               placeholder="Enter your email" required>
                     </div>
 
                     <div class="form-group">
                         <label for="mobile">Mobile number</label>
-                        <input
-                            type="tel"
-                            id="mobile"
-                            placeholder="Mobile no."
-                            required>
+                        <input type="tel" id="mobile"
+                               placeholder="Mobile no." required>
                     </div>
 
                     <div class="form-group full">
                         <label for="address">Residential address</label>
-                        <input
-                            type="text"
-                            id="address"
-                            placeholder="Enter your address"
-                            required>
-
+                        <input type="text" id="address"
+                               placeholder="Enter your address" required>
                         <span class="hint">
                             Your address within Barangay San Antonio De Padua II.
                         </span>
@@ -850,40 +765,24 @@ body {
 
                     <div class="form-group">
                         <label for="password">Password</label>
-
                         <div class="password-box">
-                            <input
-                                type="password"
-                                id="password"
-                                placeholder="Create a password"
-                                minlength="6"
-                                required>
-
-                            <button
-                                type="button"
-                                class="eye-button"
-                                onclick="togglePassword('password', this)">
+                            <input type="password" id="password"
+                                   placeholder="Create a password"
+                                   minlength="6" required>
+                            <button type="button" class="eye-button"
+                                onclick="togglePassword('password',this)">
                                 SHOW
                             </button>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="confirmPassword">
-                            Confirm password
-                        </label>
-
+                        <label for="confirmPassword">Confirm password</label>
                         <div class="password-box">
-                            <input
-                                type="password"
-                                id="confirmPassword"
-                                placeholder="Re-enter password"
-                                required>
-
-                            <button
-                                type="button"
-                                class="eye-button"
-                                onclick="togglePassword('confirmPassword', this)">
+                            <input type="password" id="confirmPassword"
+                                   placeholder="Re-enter password" required>
+                            <button type="button" class="eye-button"
+                                onclick="togglePassword('confirmPassword',this)">
                                 SHOW
                             </button>
                         </div>
@@ -897,27 +796,15 @@ body {
 
                 </div>
 
-
-                <!-- TERMS AND CONDITIONS -->
-
                 <div class="terms">
-
-                    <input
-                        type="checkbox"
-                        id="agree"
-                        required>
-
+                    <input type="checkbox" id="agree" required>
                     <label for="agree">
                         I agree to the
                         <a href="terms.html">Terms of use</a>
                         and acknowledge the
                         <a href="privacy.html">Privacy policy.</a>
                     </label>
-
                 </div>
-
-
-                <!-- SUBMIT BUTTON -->
 
                 <button type="submit" class="create-btn">
                     Create account &nbsp; →
@@ -938,34 +825,43 @@ body {
 
 <!-- FOOTER -->
 
+<footer class="footer">
+
+    <span>© 2026 CAPS Portal. All rights reserved.</span>
+
+    <span class="footer-divider"></span>
+
+    <a href="privacy.html">Privacy Policy</a>
+
+    <span class="footer-divider"></span>
+
+    <a href="help.html">Need Help?</a>
+
+</footer>
 
 
 <!-- JAVASCRIPT -->
 
 <script>
 
-// SHOW / HIDE PASSWORD
+// PASSWORD VISIBILITY
 
 function togglePassword(id, button) {
 
     const input = document.getElementById(id);
 
     if (input.type === "password") {
-
         input.type = "text";
         button.textContent = "HIDE";
-
     } else {
-
         input.type = "password";
         button.textContent = "SHOW";
-
     }
 
 }
 
 
-// REGISTRATION FORM VALIDATION
+// REGISTRATION VALIDATION
 
 document.getElementById("registerForm")
 .addEventListener("submit", function(event) {
@@ -979,24 +875,18 @@ document.getElementById("registerForm")
         document.getElementById("confirmPassword").value;
 
     if (password.length < 6) {
-
         alert("Password must contain at least 6 characters.");
         return;
-
     }
 
     if (password !== confirmPassword) {
-
         alert("Passwords do not match. Please try again.");
         return;
-
     }
 
     alert("Registration form completed successfully!");
 
-    // Backend registration and database integration
-    // will be added here.
-
+    // Connect your existing backend/database registration here.
 });
 
 </script>
