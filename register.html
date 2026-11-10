@@ -1,895 +1,205 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CAPS Portal - Create Account</title>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-:root {
-    --green: #075c39;
-    --dark: #03452d;
-    --accent: #25a96b;
-    --light: #dff7e9;
-    --text: #15251d;
-    --muted: #68766f;
-    --border: #dce4e9;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', sans-serif;
-    background: #f3f8f5;
-    color: var(--text);
-}
-
-/* HEADER */
-
-.header {
-    height: 88px;
-    padding: 0 4.5%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(110deg, #03452d, #005536, #03452d);
-    color: white;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-}
-
-.logo {
-    width: 60px;
-    height: 54px;
-    padding-right: 15px;
-    border-right: 2px solid rgba(255,255,255,.45);
-}
-
-.logo svg {
-    width: 48px;
-    height: 48px;
-}
-
-.brand h2 {
-    font-size: 25px;
-    font-weight: 800;
-    letter-spacing: -.8px;
-}
-
-.brand p {
-    font-size: 14px;
-    color: #d0e7d9;
-    margin-top: 3px;
-}
-
-.login {
-    font-size: 13px;
-}
-
-.login a {
-    display: inline-block;
-    color: white;
-    text-decoration: none;
-    border: 1px solid white;
-    border-radius: 30px;
-    padding: 11px 19px;
-    margin-left: 12px;
-    font-weight: 700;
-}
-
-/* MAIN BACKGROUND */
-
-.main {
-    min-height: 773px;
-    padding: 48px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #f5f9f7, #edf5f0);
-}
-
-.curves {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.curve {
-    position: absolute;
-    border: 1px solid rgba(6,104,62,.18);
-    border-radius: 50%;
-}
-
-.curve.one {
-    width: 850px;
-    height: 850px;
-    top: -650px;
-    left: -300px;
-}
-
-.curve.two {
-    width: 900px;
-    height: 900px;
-    bottom: -700px;
-    right: -400px;
-}
-
-.curve.three {
-    width: 700px;
-    height: 700px;
-    top: 30%;
-    right: -550px;
-    border: 50px solid rgba(26,153,91,.06);
-}
-
-/* MAIN CARD */
-
-.card {
-    width: 100%;
-    max-width: 1205px;
-    min-height: 715px;
-    display: grid;
-    grid-template-columns: .85fr 1.15fr;
-    background: white;
-    border: 1px solid #e1e8e3;
-    border-radius: 22px;
-    overflow: hidden;
-    position: relative;
-    z-index: 2;
-    box-shadow: 0 18px 45px rgba(0,54,31,.13);
-}
-
-/* LEFT PANEL */
-
-.left-panel {
-    background: linear-gradient(145deg,#087247,#03472f 75%);
-    padding: 60px 45px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-    position: relative;
-    overflow: hidden;
-}
-
-.left-panel::before {
-    content: "";
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle,rgba(36,185,102,.23),transparent 68%);
-    top: -330px;
-    right: -200px;
-}
-
-.left-content {
-    width: 100%;
-    position: relative;
-    z-index: 2;
-}
-
-.community-logo {
-    margin-bottom: 20px;
-}
-
-.community-logo svg {
-    width: 145px;
-    height: 115px;
-}
-
-.portal-title {
-    font-size: 49px;
-    font-weight: 800;
-    letter-spacing: -2px;
-    margin-bottom: 24px;
-}
-
-.portal-title span {
-    font-weight: 400;
-}
-
-.green-line {
-    width: 175px;
-    height: 3px;
-    background: #65d88f;
-    margin: 0 auto 30px;
-}
-
-.left-panel h1 {
-    font-size: 39px;
-    line-height: 1.3;
-    font-weight: 800;
-    letter-spacing: -1.3px;
-    margin-bottom: 25px;
-}
-
-.left-description {
-    font-size: 17px;
-    line-height: 1.7;
-    color: #e0f2e8;
-    max-width: 390px;
-    margin: auto;
-}
-
-/* DECORATIVE WAVES */
-
-.wave-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 170px;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.wave {
-    position: absolute;
-    width: 150%;
-    height: 170px;
-    left: -20%;
-    border-radius: 50% 50% 0 0;
-}
-
-.wave-1 {
-    bottom: -100px;
-    background: linear-gradient(100deg,#006139,#38b76b);
-    transform: rotate(-8deg);
-}
-
-.wave-2 {
-    bottom: -130px;
-    background: linear-gradient(90deg,#087b49,#66dc80);
-    transform: rotate(5deg);
-}
-
-.wave-3 {
-    bottom: -155px;
-    background: #03452d;
-    transform: rotate(-3deg);
-}
-
-/* RIGHT PANEL */
-
-.right-panel {
-    padding: 30px 55px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.badge {
-    display: inline-flex;
-    width: fit-content;
-    padding: 12px 18px;
-    border-radius: 30px;
-    background: #d9f7e5;
-    color: #07613b;
-    font-size: 15px;
-    font-weight: 800;
-    margin-bottom: 16px;
-}
-
-.right-panel h2 {
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    line-height: 1.2;
-    margin-bottom: 9px;
-}
-
-.subtitle {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #68766f;
-    margin-bottom: 27px;
-}
-
-/* REGISTRATION FORM */
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 19px 22px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.form-group.full {
-    grid-column: span 2;
-}
-
-.form-group label {
-    font-size: 14px;
-    font-weight: 700;
-    color: #17271e;
-}
-
-.form-group input {
-    width: 100%;
-    height: 46px;
-    padding: 0 15px;
-    background: #fbfcfd;
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: .2s;
-}
-
-.form-group input:focus {
-    border-color: #21a66b;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(33,166,107,.10);
-}
-
-.form-group input::placeholder {
-    color: #89959f;
-}
-
-.hint {
-    color: #84918a;
-    font-size: 12px;
-    margin-top: -2px;
-}
-
-/* PASSWORD */
-
-.password-box {
-    position: relative;
-}
-
-.password-box input {
-    padding-right: 55px;
-}
-
-.eye-button {
-    position: absolute;
-    top: 50%;
-    right: 13px;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #718078;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-/* TERMS */
-
-.terms {
-    display: flex;
-    align-items: flex-start;
-    gap: 11px;
-    margin: 24px 0 19px;
-}
-
-.terms input {
-    width: 17px;
-    height: 17px;
-    accent-color: var(--green);
-    margin-top: 2px;
-    flex-shrink: 0;
-    cursor: pointer;
-}
-
-.terms label {
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-.terms a {
-    color: #087344;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-/* BUTTON */
-
-.create-btn {
-    width: 100%;
-    height: 49px;
-    background: linear-gradient(100deg,#075638,#00623d);
-    color: white;
-    border: none;
-    border-radius: 11px;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: .25s;
-    box-shadow: 0 5px 12px rgba(0,70,40,.14);
-}
-
-.create-btn:hover {
-    background: #08784b;
-    transform: translateY(-2px);
-}
-
-.security {
-    text-align: center;
-    margin-top: 24px;
-    color: #7e8b83;
-    font-size: 12px;
-}
-
-/* FOOTER */
-
-.footer {
-    min-height: 76px;
-    background: linear-gradient(100deg,#03452d,#005436);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 25px;
-    padding: 18px;
-    font-size: 13px;
-}
-
-.footer a {
-    color: #d9eee2;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.footer-divider {
-    height: 20px;
-    width: 1px;
-    background: rgba(255,255,255,.4);
-}
-
-/* RESPONSIVE */
-
-@media(max-width:1000px) {
-    .card {
-        grid-template-columns:.8fr 1.2fr;
-    }
-
-    .right-panel {
-        padding:35px;
-    }
-
-    .left-panel {
-        padding:35px 25px;
-    }
-
-    .portal-title {
-        font-size:38px;
-    }
-
-    .left-panel h1 {
-        font-size:31px;
-    }
-
-    .right-panel h2 {
-        font-size:29px;
-    }
-}
-
-@media(max-width:750px) {
-    .main {
-        padding:25px 15px;
-    }
-
-    .card {
-        max-width:550px;
-        grid-template-columns:1fr;
-    }
-
-    .left-panel {
-        min-height:400px;
-        padding:45px 25px;
-    }
-
-    .right-panel {
-        padding:40px 30px;
-    }
-
-    .left-panel h1 {
-        font-size:32px;
-    }
-
-    .right-panel h2 {
-        font-size:28px;
-    }
-}
-
-@media(max-width:480px) {
-    .header {
-        height:75px;
-        padding:0 15px;
-    }
-
-    .logo {
-        display:none;
-    }
-
-    .brand h2 {
-        font-size:19px;
-    }
-
-    .brand p {
-        font-size:10px;
-    }
-
-    .login {
-        font-size:10px;
-    }
-
-    .login a {
-        padding:8px 10px;
-        margin-left:3px;
-    }
-
-    .left-panel {
-        min-height:350px;
-    }
-
-    .portal-title {
-        font-size:35px;
-    }
-
-    .community-logo svg {
-        width:100px;
-        height:80px;
-    }
-
-    .left-panel h1 {
-        font-size:27px;
-    }
-
-    .left-description {
-        font-size:14px;
-    }
-
-    .right-panel {
-        padding:30px 20px;
-    }
-
-    .right-panel h2 {
-        font-size:24px;
-    }
-
-    .subtitle {
-        font-size:13px;
-    }
-
-    .form-grid {
-        grid-template-columns:1fr;
-    }
-
-    .form-group.full {
-        grid-column:span 1;
-    }
-
-    .footer {
-        flex-wrap:wrap;
-        gap:12px;
-        font-size:11px;
-    }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPS Portal - Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .bg-caps-primary { background-color: #0E5A36; }
+    .text-caps-primary { color: #0E5A36; }
+    .border-caps-primary { border-color: #0E5A36; }
+  </style>
 </head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-<body>
-
-<!-- HEADER -->
-
-<header class="header">
-
-    <div class="brand">
-
-        <div class="logo">
-            <svg viewBox="0 0 100 100" fill="none"
-                 xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 42 L50 9 L90 42"
-                      stroke="white" stroke-width="7"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-                <path d="M19 39 V87 H81 V39"
-                      stroke="white" stroke-width="7"
-                      stroke-linejoin="round"/>
-                <circle cx="50" cy="49" r="9" fill="white"/>
-                <circle cx="31" cy="58" r="7" fill="white"/>
-                <circle cx="69" cy="58" r="7" fill="white"/>
-                <path d="M34 82 V72 C34 62 41 57 50 57 C59 57 66 62 66 72 V82"
-                      fill="white"/>
-                <path d="M21 82 V75 C21 67 25 64 31 64"
-                      stroke="white" stroke-width="6"
-                      stroke-linecap="round"/>
-                <path d="M79 82 V75 C79 67 75 64 69 64"
-                      stroke="white" stroke-width="6"
-                      stroke-linecap="round"/>
-            </svg>
+  <div class="min-h-screen flex flex-col lg:flex-row w-full">
+    
+    <!-- LEFT SIDEBAR -->
+    <div class="lg:w-5/12 bg-caps-primary text-white p-6 md:p-12 flex flex-col justify-between min-h-[400px] lg:min-h-screen">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+          <i data-lucide="home" class="w-6 h-6 text-white"></i>
         </div>
-
         <div>
-            <h2>CAPS Portal</h2>
-            <p>Your community, connected.</p>
+          <h1 class="font-bold text-xl tracking-tight leading-none">CAPS Portal</h1>
+          <p class="text-xs text-emerald-100 font-medium">Your community, connected.</p>
+        </div>
+      </div>
+
+      <div class="my-8 lg:my-0 space-y-6 max-w-md">
+        <div class="space-y-2">
+          <span class="text-[10px] uppercase tracking-widest font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-full inline-block">
+            ROOTED IN COMMUNITY
+          </span>
+          <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
+            A closer community.<br/>A simpler everyday.
+          </h2>
+          <p class="text-emerald-100 text-sm leading-relaxed">
+            A shared space for the residents of Barangay San Antonio De Padua II to stay informed and connected.
+          </p>
         </div>
 
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl group border border-white/10">
+          <img 
+            src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" 
+            alt="Barangay Neighborhood" 
+            class="w-full h-52 object-cover transform group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center space-x-2 text-xs font-medium">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Barangay San Antonio De Padua II</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs text-emerald-200 border-t border-white/10 pt-4">
+        <i data-lucide="users" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+        <span><strong>One neighborhood. Many connections.</strong><br/>Built around the people who call it home.</span>
+      </div>
     </div>
 
-    <div class="login">
-        Already have an account?
-        <a href="login.html">Sign in →</a>
-    </div>
+    <!-- RIGHT PANEL: Registration Form -->
+    <div class="lg:w-7/12 flex-1 bg-white p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
+      <div class="flex justify-end items-center text-xs text-slate-500">
+        <span>Already have an account?</span>
+        <a href="login.html" class="ml-2 font-semibold text-caps-primary hover:underline flex items-center">
+          Sign in <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 ml-0.5"></i>
+        </a>
+      </div>
 
-</header>
-
-
-<!-- MAIN -->
-
-<main class="main">
-
-    <div class="curves">
-        <div class="curve one"></div>
-        <div class="curve two"></div>
-        <div class="curve three"></div>
-    </div>
-
-    <section class="card">
-
-        <!-- LEFT PANEL -->
-
-        <div class="left-panel">
-
-            <div class="left-content">
-
-                <div class="community-logo">
-                    <svg viewBox="0 0 150 120" fill="none"
-                         xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 48 L75 5 L138 48"
-                              stroke="white" stroke-width="9"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                        <path d="M25 45 V107 H125 V45"
-                              stroke="white" stroke-width="9"
-                              stroke-linejoin="round"/>
-                        <circle cx="75" cy="52" r="12" fill="white"/>
-                        <circle cx="45" cy="68" r="9" fill="white"/>
-                        <circle cx="105" cy="68" r="9" fill="white"/>
-                        <path d="M49 104 V89 C49 76 60 68 75 68 C90 68 101 76 101 89 V104"
-                              fill="white"/>
-                        <path d="M29 104 V94 C29 84 35 79 45 79"
-                              stroke="white" stroke-width="8"
-                              stroke-linecap="round"/>
-                        <path d="M121 104 V94 C121 84 115 79 105 79"
-                              stroke="white" stroke-width="8"
-                              stroke-linecap="round"/>
-                    </svg>
-                </div>
-
-                <div class="portal-title">
-                    CAPS <span>Portal</span>
-                </div>
-
-                <div class="green-line"></div>
-
-                <h1>
-                    A closer community.
-                    <br>
-                    A simpler everyday.
-                </h1>
-
-                <p class="left-description">
-                    A shared space for the residents of
-                    Barangay San Antonio De Padua II to
-                    stay informed and connected.
-                </p>
-
-            </div>
-
-            <div class="wave-container">
-                <div class="wave wave-1"></div>
-                <div class="wave wave-2"></div>
-                <div class="wave wave-3"></div>
-            </div>
-
+      <div class="max-w-md w-full mx-auto my-auto py-6">
+        <div class="mb-5">
+          <span class="inline-flex items-center space-x-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 mb-3">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>JOIN YOUR COMMUNITY</span>
+          </span>
+          <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Create your resident account.</h2>
+          <p class="text-xs text-slate-500 mt-1">For residents of Barangay San Antonio De Padua II. A few details are all you need to get started.</p>
         </div>
 
-
-        <!-- RIGHT PANEL -->
-
-        <div class="right-panel">
-
-            <div class="badge">
-                JOIN YOUR COMMUNITY
+        <form id="register-form" class="space-y-3.5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">First name</label>
+              <input type="text" id="reg-firstname" required placeholder="FIRST NAME" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
             </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Last name</label>
+              <input type="text" id="reg-lastname" required placeholder="LAST NAME" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+            </div>
+          </div>
 
-            <h2>Create your resident account.</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Email address</label>
+              <input type="email" id="reg-email" required placeholder="ENTER YOUR EMAIL" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile number</label>
+              <input type="tel" id="reg-phone" required placeholder="MOBILE NO." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+            </div>
+          </div>
 
-            <p class="subtitle">
-                For residents of Barangay San Antonio De Padua II.
-                A few details are all you need to get started.
-            </p>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Residential address</label>
+            <input type="text" id="reg-address" required placeholder="ENTER YOUR ADDRESS" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+            <p class="text-[11px] text-slate-400 mt-0.5">Your address within Barangay San Antonio De Padua II.</p>
+          </div>
 
-            <form id="registerForm">
-
-                <div class="form-grid">
-
-                    <div class="form-group">
-                        <label for="firstName">First name</label>
-                        <input type="text" id="firstName"
-                               placeholder="First name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="lastName">Last name</label>
-                        <input type="text" id="lastName"
-                               placeholder="Last name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email address</label>
-                        <input type="email" id="email"
-                               placeholder="Enter your email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="mobile">Mobile number</label>
-                        <input type="tel" id="mobile"
-                               placeholder="Mobile no." required>
-                    </div>
-
-                    <div class="form-group full">
-                        <label for="address">Residential address</label>
-                        <input type="text" id="address"
-                               placeholder="Enter your address" required>
-                        <span class="hint">
-                            Your address within Barangay San Antonio De Padua II.
-                        </span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="password-box">
-                            <input type="password" id="password"
-                                   placeholder="Create a password"
-                                   minlength="6" required>
-                            <button type="button" class="eye-button"
-                                onclick="togglePassword('password',this)">
-                                SHOW
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm password</label>
-                        <div class="password-box">
-                            <input type="password" id="confirmPassword"
-                                   placeholder="Re-enter password" required>
-                            <button type="button" class="eye-button"
-                                onclick="togglePassword('confirmPassword',this)">
-                                SHOW
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-group full">
-                        <span class="hint">
-                            Use at least 6 characters for your password.
-                        </span>
-                    </div>
-
-                </div>
-
-                <div class="terms">
-                    <input type="checkbox" id="agree" required>
-                    <label for="agree">
-                        I agree to the
-                        <a href="terms.html">Terms of use</a>
-                        and acknowledge the
-                        <a href="privacy.html">Privacy policy.</a>
-                    </label>
-                </div>
-
-                <button type="submit" class="create-btn">
-                    Create account &nbsp; →
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+              <div class="relative">
+                <input type="password" id="reg-pass" required placeholder="Create a password" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+                <button type="button" onclick="togglePassword('reg-pass', 'eye-reg-1')" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600">
+                  <i data-lucide="eye" id="eye-reg-1" class="w-4 h-4"></i>
                 </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Confirm password</label>
+              <div class="relative">
+                <input type="password" id="reg-confirm-pass" required placeholder="Re-enter password" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition" />
+                <button type="button" onclick="togglePassword('reg-confirm-pass', 'eye-reg-2')" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600">
+                  <i data-lucide="eye" id="eye-reg-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400">Use at least 6 characters for your password.</p>
 
-                <p class="security">
-                    🔒 Please don't share your password with anyone.
-                </p>
+          <div class="flex items-start space-x-2 text-xs text-slate-600 pt-1">
+            <input type="checkbox" required class="mt-0.5 rounded border-slate-300 text-caps-primary focus:ring-caps-primary">
+            <span>I agree to the <a href="#" class="text-caps-primary font-semibold hover:underline">Terms of use</a> and acknowledge the <a href="#" class="text-caps-primary font-semibold hover:underline">Privacy policy</a>.</span>
+          </div>
 
-            </form>
+          <button type="submit" class="w-full bg-caps-primary hover:bg-emerald-900 text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-md transition flex items-center justify-center space-x-2 mt-3">
+            <span>Create account</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
 
+        <div class="mt-4 text-center text-xs text-slate-400 flex items-center justify-center space-x-1">
+          <i data-lucide="lock" class="w-3 h-3"></i>
+          <span>Please don't share your password with anyone.</span>
         </div>
+      </div>
 
-    </section>
+      <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 border-t border-slate-100 pt-4 mt-auto">
+        <p>© 2026 CAPS Portal</p>
+        <div class="space-x-4 mt-2 sm:mt-0">
+          <a href="#" class="hover:underline">Privacy policy</a>
+          <a href="#" class="hover:underline">Need help?</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-</main>
+  <script type="module">
+    import { auth, createUserWithEmailAndPassword } from './firebase-config.js';
 
+    lucide.createIcons();
 
-<!-- FOOTER -->
+    window.togglePassword = function(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    };
 
-<footer class="footer">
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const p1 = document.getElementById('reg-pass').value;
+      const p2 = document.getElementById('reg-confirm-pass').value;
+      const fname = document.getElementById('reg-firstname').value.trim();
+      const lname = document.getElementById('reg-lastname').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
 
-    <span>© 2026 CAPS Portal. All rights reserved.</span>
-
-    <span class="footer-divider"></span>
-
-    <a href="privacy.html">Privacy Policy</a>
-
-    <span class="footer-divider"></span>
-
-    <a href="help.html">Need Help?</a>
-
-</footer>
-
-
-<!-- JAVASCRIPT -->
-
-<script>
-
-// PASSWORD VISIBILITY
-
-function togglePassword(id, button) {
-
-    const input = document.getElementById(id);
-
-    if (input.type === "password") {
-        input.type = "text";
-        button.textContent = "HIDE";
-    } else {
-        input.type = "password";
-        button.textContent = "SHOW";
-    }
-
-}
-
-
-// REGISTRATION VALIDATION
-
-document.getElementById("registerForm")
-.addEventListener("submit", function(event) {
-
-    event.preventDefault();
-
-    const password =
-        document.getElementById("password").value;
-
-    const confirmPassword =
-        document.getElementById("confirmPassword").value;
-
-    if (password.length < 6) {
-        alert("Password must contain at least 6 characters.");
+      if (p1 !== p2) {
+        alert('Passwords do not match!');
         return;
-    }
+      }
 
-    if (password !== confirmPassword) {
-        alert("Passwords do not match. Please try again.");
-        return;
-    }
-
-    alert("Registration form completed successfully!");
-
-    // Connect your existing backend/database registration here.
-});
-
-</script>
-
+      try {
+        await createUserWithEmailAndPassword(auth, email, p1);
+        localStorage.setItem('registeredUser', JSON.stringify({
+          name: `${fname} ${lname}`,
+          email: email
+        }));
+        alert('Account created successfully!');
+        window.location.href = 'login.html?registered=true';
+      } catch (error) {
+        alert('Registration failed: ' + error.message);
+      }
+    });
+  </script>
 </body>
 </html>
