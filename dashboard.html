@@ -28,7 +28,7 @@
     }
   </script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col pb-16 lg:pb-0">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
   <!-- TOP NAVIGATION HEADER -->
   <header class="bg-caps-900 text-white sticky top-0 z-40 shadow-lg border-b border-caps-800">
@@ -102,7 +102,7 @@
       </div>
 
       <!-- MAIN NAVIGATION MENU -->
-      <div class="hidden lg:block bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm">
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm">
         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigation</h3>
         <nav class="space-y-1">
           <a href="dashboard.html" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg bg-caps-50 text-caps-700 border border-caps-100">
@@ -153,19 +153,13 @@
     </section>
 
     <!-- RIGHT SIDEBAR: HOTLINES -->
-    <aside id="hotlines-section" class="lg:col-span-3 space-y-4">
+    <aside class="lg:col-span-3 space-y-4">
       <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm">
-        
-        <!-- Toggle Header for Mobile View -->
-        <button onclick="toggleHotlinesMobile()" class="w-full flex items-center justify-between focus:outline-none cursor-pointer">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="phone-call" class="w-4 h-4 text-caps-600"></i>
-            <h3 class="text-xs font-bold text-slate-700 lg:text-slate-400 uppercase tracking-wider">Emergency Hotlines</h3>
-          </div>
-          <i id="hotline-chevron" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform lg:hidden"></i>
-        </button>
-
-        <ul id="hotline-list" class="space-y-2 text-xs mt-3 hidden lg:block">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Emergency Hotlines</h3>
+          <i data-lucide="phone-call" class="w-4 h-4 text-caps-600"></i>
+        </div>
+        <ul class="space-y-2 text-xs">
           
           <!-- National Emergency Hotline -->
           <li class="p-2.5 bg-red-50/70 rounded-lg border border-red-100 flex items-center justify-between transition hover:border-red-200">
@@ -304,26 +298,6 @@
 
   </main>
 
-  <!-- FIXED BOTTOM MOBILE NAVIGATION BAR -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200/80 shadow-lg z-30 lg:hidden flex justify-around items-center h-16 px-2">
-    <a href="dashboard.html" class="flex flex-col items-center text-caps-700 font-medium text-[10px] space-y-1">
-      <i data-lucide="rss" class="w-5 h-5"></i>
-      <span>Feed</span>
-    </a>
-    <a href="my-reports.html" class="flex flex-col items-center text-slate-500 hover:text-caps-700 font-medium text-[10px] space-y-1">
-      <i data-lucide="file-text" class="w-5 h-5"></i>
-      <span>My Reports</span>
-    </a>
-    <button onclick="scrollToHotlines()" class="flex flex-col items-center text-slate-500 hover:text-caps-700 font-medium text-[10px] space-y-1">
-      <i data-lucide="phone-call" class="w-5 h-5"></i>
-      <span>Hotlines</span>
-    </button>
-    <a href="profile.html" class="flex flex-col items-center text-slate-500 hover:text-caps-700 font-medium text-[10px] space-y-1">
-      <i data-lucide="user" class="w-5 h-5"></i>
-      <span>Profile</span>
-    </a>
-  </nav>
-
   <!-- MODAL: SUBMIT NEW REPORT -->
   <div id="report-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 border border-slate-100">
@@ -381,27 +355,6 @@
     const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
     document.getElementById('user-avatar').innerText = initials;
     document.getElementById('post-input-avatar').innerText = initials;
-
-    // Toggle Emergency Hotlines on Mobile View
-    function toggleHotlinesMobile() {
-      const hotlineList = document.getElementById('hotline-list');
-      const chevron = document.getElementById('hotline-chevron');
-      if (window.innerWidth < 1024) {
-        hotlineList.classList.toggle('hidden');
-        chevron.classList.toggle('rotate-180');
-      }
-    }
-
-    // Scroll to and expand hotlines from bottom mobile menu
-    function scrollToHotlines() {
-      const hotlineSection = document.getElementById('hotlines-section');
-      const hotlineList = document.getElementById('hotline-list');
-      const chevron = document.getElementById('hotline-chevron');
-      
-      hotlineList.classList.remove('hidden');
-      chevron.classList.add('rotate-180');
-      hotlineSection.scrollIntoView({ behavior: 'smooth' });
-    }
 
     // Load Saved Reports
     function loadReports() {
