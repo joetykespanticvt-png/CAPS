@@ -103,10 +103,13 @@
 
   </main>
 
-  <script>
+  <script type="module">
+    import { db, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from './firebase-config.js';
+
     lucide.createIcons();
 
     let currentActiveCategory = 'all';
+    let allFetchedReports = [];
     const statusSteps = ['Pending', 'Under Review', 'In Progress', 'Resolved'];
 
     function getBadgeClass(status) {
@@ -118,14 +121,20 @@
       }
     }
 
+    // Real-Time Firebase Firestore Admin Listener
+    const reportsQuery = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+    onSnapshot(reportsQuery, (snapshot) => {
+      allFetchedReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderAdminReports();
+    });
+
     function renderAdminReports() {
-      const reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
       const container = document.getElementById('admin-reports-list');
-      document.getElementById('total-reports-count').innerText = reports.length;
+      document.getElementById('total-reports-count').innerText = allFetchedReports.length;
 
       const filtered = currentActiveCategory === 'all' 
-        ? reports 
-        : reports.filter(r => (r.category || '').toUpperCase() === currentActiveCategory.toUpperCase());
+        ? allFetchedReports 
+        : allFetchedReports.filter(r => (r.category || '').toUpperCase() === currentActiveCategory.toUpperCase());
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -142,7 +151,6 @@
         const currentStatus = rep.status || 'Pending';
         const currentStepIndex = statusSteps.indexOf(currentStatus) !== -1 ? statusSteps.indexOf(currentStatus) : 0;
 
-        // Render the status progress bar for the admin
         let trackerHTML = statusSteps.map((step, idx) => {
           const isCompleted = idx <= currentStepIndex;
           const isCurrent = idx === currentStepIndex;
@@ -172,7 +180,7 @@
                 ${rep.category || 'GENERAL'}
               </span>
               <h3 class="font-bold text-slate-900 text-base mt-2">${rep.title}</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Submitted by: <strong>${rep.authorName || 'Resident'}</strong> • ${rep.purok} • ${rep.date}</p>
+              <p class="text-xs text-slate-500 mt-0.5">Submitted by: <strong>${rep.authorName || 'Resident'}</strong> • ${rep.purok} • ${rep.date || 'Just now'}</p>
             </div>
             <span class="px-3 py-1 rounded-full text-xs font-bold border ${getBadgeClass(currentStatus)}">
               ${currentStatus}
@@ -185,7 +193,6 @@
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Live Progress Tracker Stage</p>
             <div class="flex items-center justify-between relative">
-              <!-- Connecting Line -->
               <div class="absolute top-3 left-6 right-6 h-0.5 bg-slate-200 z-0"></div>
               ${trackerHTML}
             </div>
@@ -195,7 +202,7 @@
           <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center space-x-2">
               <span class="text-xs font-bold text-slate-700">Update Report Status:</span>
-              <select onchange="updateStatus(${rep.id}, this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold cursor-pointer">
+              <select onchange="updateStatus('${rep.id}', this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold cursor-pointer">
                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                 <option value="Under Review" ${currentStatus === 'Under Review' ? 'selected' : ''}>Under Review</option>
                 <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
@@ -203,7 +210,7 @@
               </select>
             </div>
 
-            <button onclick="deleteReportByAdmin(${rep.id})" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-xl hover:bg-red-50 transition">
+            <button onclick="deleteReportByAdmin('${rep.id}')" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-xl hover:bg-red-50 transition">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
               <span>Delete Submission</span>
             </button>
@@ -215,25 +222,17 @@
       lucide.createIcons();
     }
 
-    function updateStatus(id, newStatus) {
-      let reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      reports = reports.map(r => {
-        if (r.id === id) r.status = newStatus;
-        return r;
-      });
-      localStorage.setItem('caps_reports', JSON.stringify(reports));
-      renderAdminReports();
-    }
+    window.updateStatus = async function(id, newStatus) {
+      const reportRef = doc(db, "reports", id);
+      await updateDoc(reportRef, { status: newStatus });
+    };
 
-    function deleteReportByAdmin(id) {
+    window.deleteReportByAdmin = async function(id) {
       if (!confirm('Are you sure you want to delete this report as Administrator?')) return;
-      let reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      reports = reports.filter(r => r.id !== id);
-      localStorage.setItem('caps_reports', JSON.stringify(reports));
-      renderAdminReports();
-    }
+      await deleteDoc(doc(db, "reports", id));
+    };
 
-    function filterAdminCategory(cat, btn) {
+    window.filterAdminCategory = function(cat, btn) {
       currentActiveCategory = cat;
       document.querySelectorAll('.filter-btn').forEach(b => {
         b.className = "filter-btn w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition";
@@ -241,14 +240,12 @@
       btn.className = "filter-btn active w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold rounded-xl bg-emerald-50 text-caps-primary border border-emerald-100";
       document.getElementById('filter-label').innerText = `Showing: ${cat === 'all' ? 'All Reports' : cat}`;
       renderAdminReports();
-    }
+    };
 
-    function logout() {
+    window.logout = function() {
       localStorage.removeItem('currentUser');
       window.location.href = 'login.html';
-    }
-
-    renderAdminReports();
+    };
   </script>
 </body>
 </html>

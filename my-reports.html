@@ -95,7 +95,9 @@
 
   </main>
 
-  <script>
+  <script type="module">
+    import { db, collection, onSnapshot, doc, deleteDoc, query, orderBy } from './firebase-config.js';
+
     lucide.createIcons();
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz' };
@@ -103,7 +105,6 @@
     const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
     document.getElementById('user-avatar').innerText = initials;
 
-    // Defined status progression order
     const statusSteps = ['Pending', 'Under Review', 'In Progress', 'Resolved'];
 
     function getBadgeClass(status) {
@@ -115,9 +116,15 @@
       }
     }
 
-    function renderMyReports() {
-      const allReports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
+    // Real-Time Firebase Listener filtered to current user's submitted reports
+    const reportsQuery = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+    onSnapshot(reportsQuery, (snapshot) => {
+      const allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const myReports = allReports.filter(r => r.authorName === currentUser.name);
+      renderMyReports(myReports);
+    });
+
+    function renderMyReports(myReports) {
       const container = document.getElementById('my-reports-list');
 
       if (myReports.length === 0) {
@@ -130,6 +137,7 @@
             <p class="text-xs text-slate-400 max-w-sm mx-auto">Your submitted issues in Barangay San Antonio De Padua II will appear here with live tracking updates.</p>
           </div>
         `;
+        lucide.createIcons();
         return;
       }
 
@@ -138,7 +146,6 @@
         const currentStatus = rep.status || 'Pending';
         const currentStepIndex = statusSteps.indexOf(currentStatus) !== -1 ? statusSteps.indexOf(currentStatus) : 0;
 
-        // Render the 4-step green progress bar
         let trackerHTML = statusSteps.map((step, idx) => {
           const isCompleted = idx <= currentStepIndex;
           const isCurrent = idx === currentStepIndex;
@@ -165,10 +172,10 @@
           <div class="flex justify-between items-start">
             <div>
               <span class="text-[10px] font-bold text-caps-primary bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase tracking-wider inline-block">
-                ${rep.category}
+                ${rep.category || 'INFRASTRUCTURE'}
               </span>
               <h3 class="font-bold text-slate-900 text-base mt-2">${rep.title}</h3>
-              <p class="text-xs text-slate-400 mt-0.5">${rep.purok} • ${rep.date}</p>
+              <p class="text-xs text-slate-400 mt-0.5">${rep.purok} • ${rep.date || 'Just now'}</p>
             </div>
             <span class="px-3 py-1 rounded-full text-xs font-bold border ${getBadgeClass(currentStatus)}">
               ${currentStatus}
@@ -181,7 +188,6 @@
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Report Progress Tracker</p>
             <div class="flex items-center justify-between relative">
-              <!-- Connecting Line -->
               <div class="absolute top-3 left-6 right-6 h-0.5 bg-slate-200 z-0"></div>
               ${trackerHTML}
             </div>
@@ -189,7 +195,7 @@
 
           <!-- ACTIONS BAR -->
           <div class="pt-2 border-t border-slate-100 flex justify-end">
-            <button onclick="deleteMyReport(${rep.id})" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-xl hover:bg-red-50 transition">
+            <button onclick="deleteMyReport('${rep.id}')" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-xl hover:bg-red-50 transition">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
               <span>Delete Report</span>
             </button>
@@ -201,22 +207,15 @@
       lucide.createIcons();
     }
 
-    function deleteMyReport(id) {
+    window.deleteMyReport = async function(id) {
       if (!confirm("Are you sure you want to delete this report? This action cannot be undone.")) return;
+      await deleteDoc(doc(db, "reports", id));
+    };
 
-      let allReports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      allReports = allReports.filter(r => r.id !== id);
-      localStorage.setItem('caps_reports', JSON.stringify(allReports));
-
-      renderMyReports();
-    }
-
-    function logout() {
+    window.logout = function() {
       localStorage.removeItem('currentUser');
       window.location.href = 'login.html';
-    }
-
-    renderMyReports();
+    };
   </script>
 </body>
 </html>
