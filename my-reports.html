@@ -96,14 +96,15 @@
   </main>
 
   <script type="module">
-    import { db, collection, onSnapshot, doc, deleteDoc, query, orderBy } from './firebase-config.js';
+    import { db, collection, onSnapshot, doc, deleteDoc, query, orderBy, auth, onAuthStateChanged } from './firebase-config.js';
 
     lucide.createIcons();
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz' };
+    // Retrieve user session data
+    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz', email: '' };
     document.getElementById('user-display-name').innerText = currentUser.name;
     const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
-    document.getElementById('user-avatar').innerText = initials;
+    document.getElementById('user-avatar').innerText = initials || 'JD';
 
     const statusSteps = ['Pending', 'Under Review', 'In Progress', 'Resolved'];
 
@@ -116,12 +117,29 @@
       }
     }
 
-    // Real-Time Firebase Listener filtered to current user's submitted reports
+    // Real-Time Firebase Listener
     const reportsQuery = query(collection(db, "reports"), orderBy("createdAt", "desc"));
-    onSnapshot(reportsQuery, (snapshot) => {
-      const allReports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const myReports = allReports.filter(r => r.authorName === currentUser.name);
-      renderMyReports(myReports);
+    
+    onAuthStateChanged(auth, (authUser) => {
+      const activeEmail = (authUser && authUser.email) ? authUser.email.toLowerCase() : (currentUser.email ? currentUser.email.toLowerCase() : '');
+      const activeName = currentUser.name ? currentUser.name.toLowerCase() : '';
+
+      onSnapshot(reportsQuery, (snapshot) => {
+        const allReports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Flexible matching logic for UID, Email, or Name
+        const myReports = allReports.filter(r => {
+          if (authUser && r.authorUid === authUser.uid) return true;
+          if (activeEmail && r.authorEmail && r.authorEmail.toLowerCase() === activeEmail) return true;
+          if (activeName && r.authorName && r.authorName.toLowerCase() === activeName) return true;
+          
+          // Debug fallback: if report has no author field, display it so it's visible
+          if (!r.authorName && !r.authorEmail) return true;
+          return false;
+        });
+
+        renderMyReports(myReports);
+      });
     });
 
     function renderMyReports(myReports) {
@@ -184,7 +202,7 @@
 
           <p class="text-xs text-slate-600 leading-relaxed">${rep.description}</p>
 
-          <!-- GREEN STATUS PROGRESS TRACKER BAR -->
+          <!-- PROGRESS TRACKER -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Report Progress Tracker</p>
             <div class="flex items-center justify-between relative">
@@ -193,7 +211,7 @@
             </div>
           </div>
 
-          <!-- ACTIONS BAR -->
+          <!-- DELETE ACTION BUTTON -->
           <div class="pt-2 border-t border-slate-100 flex justify-end">
             <button onclick="deleteMyReport('${rep.id}')" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-xl hover:bg-red-50 transition">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -209,7 +227,11 @@
 
     window.deleteMyReport = async function(id) {
       if (!confirm("Are you sure you want to delete this report? This action cannot be undone.")) return;
-      await deleteDoc(doc(db, "reports", id));
+      try {
+        await deleteDoc(doc(db, "reports", id));
+      } catch (err) {
+        alert("Error deleting report: " + err.message);
+      }
     };
 
     window.logout = function() {
