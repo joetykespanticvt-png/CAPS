@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPS Portal - My Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .bg-caps-primary { background-color: #0F3854; }
+    .text-caps-primary { color: #0F3854; }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-caps-primary text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-white/10 rounded-lg">
+            <i data-lucide="home" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-none">CAPS Portal</h1>
+            <p class="text-[11px] text-slate-300 font-medium">Barangay San Antonio De Padua II</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 border-l border-slate-700 pl-3">
+            <div class="w-8 h-8 rounded-full bg-teal-400 text-slate-950 font-bold flex items-center justify-center text-xs" id="user-avatar">JD</div>
+            <span class="hidden lg:inline text-xs font-semibold" id="user-display-name">Juan Dela Cruz</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside class="lg:col-span-3 space-y-4">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigation</h3>
+        <nav class="space-y-1">
+          <a href="dashboard.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
+            <i data-lucide="rss" class="w-4 h-4"></i>
+            <span>Community Feed</span>
+          </a>
+          <a href="my-reports.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-bold rounded-lg bg-slate-100 text-caps-primary">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>My Reports</span>
+          </a>
+          <a href="profile.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
+            <i data-lucide="user" class="w-4 h-4"></i>
+            <span>Profile Settings</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <section class="lg:col-span-9 space-y-4">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">My Submitted Concerns</h2>
+          <p class="text-xs text-slate-500">Track status updates and official barangay responses to your reports.</p>
+        </div>
+        <a href="dashboard.html" class="bg-caps-primary text-white text-xs font-semibold px-3.5 py-2 rounded-lg hover:bg-slate-800 transition">
+          + Submit New Report
+        </a>
+      </div>
+
+      <div id="my-reports-list" class="space-y-3">
+        <!-- Dynamic content or empty state -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz' };
+    document.getElementById('user-display-name').innerText = currentUser.name;
+    document.getElementById('user-avatar').innerText = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+    function renderMyReports() {
+      const allReports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
+      const myReports = allReports.filter(r => r.authorName === currentUser.name);
+      const container = document.getElementById('my-reports-list');
+
+      if (myReports.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-2">
+            <p class="font-bold text-slate-700 text-sm">You haven't submitted any reports yet.</p>
+            <p class="text-xs text-slate-400">Your submitted issues in Barangay San Antonio De Padua II will appear here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      myReports.forEach(rep => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2";
+        div.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-bold text-caps-primary bg-slate-100 px-2 py-0.5 rounded uppercase">${rep.category}</span>
+              <h3 class="font-bold text-slate-900 text-sm mt-1">${rep.title}</h3>
+              <p class="text-xs text-slate-500 mt-0.5">${rep.purok} • ${rep.date}</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">${rep.status}</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">${rep.description}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    renderMyReports();
+  </script>
+</body>
+</html>
