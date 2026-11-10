@@ -107,6 +107,7 @@
     lucide.createIcons();
 
     let currentActiveCategory = 'all';
+    const statusSteps = ['Pending', 'Under Review', 'In Progress', 'Resolved'];
 
     function getBadgeClass(status) {
       switch (status) {
@@ -139,6 +140,28 @@
       container.innerHTML = '';
       filtered.forEach(rep => {
         const currentStatus = rep.status || 'Pending';
+        const currentStepIndex = statusSteps.indexOf(currentStatus) !== -1 ? statusSteps.indexOf(currentStatus) : 0;
+
+        // Render the status progress bar for the admin
+        let trackerHTML = statusSteps.map((step, idx) => {
+          const isCompleted = idx <= currentStepIndex;
+          const isCurrent = idx === currentStepIndex;
+
+          return `
+            <div class="flex-1 flex flex-col items-center relative">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold z-10 transition ${
+                isCompleted 
+                  ? 'bg-caps-primary text-white ring-2 ring-emerald-200' 
+                  : 'bg-slate-200 text-slate-400'
+              }">
+                ${isCompleted ? '✓' : idx + 1}
+              </div>
+              <span class="text-[10px] mt-1 text-center font-medium ${isCurrent ? 'text-caps-primary font-bold' : isCompleted ? 'text-slate-700' : 'text-slate-400'}">
+                ${step}
+              </span>
+            </div>
+          `;
+        }).join('');
 
         const card = document.createElement('div');
         card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4";
@@ -158,11 +181,21 @@
 
           <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">${rep.description}</p>
 
+          <!-- LIVE STATUS PROGRESS TRACKER BAR -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Live Progress Tracker Stage</p>
+            <div class="flex items-center justify-between relative">
+              <!-- Connecting Line -->
+              <div class="absolute top-3 left-6 right-6 h-0.5 bg-slate-200 z-0"></div>
+              ${trackerHTML}
+            </div>
+          </div>
+
           <!-- STATUS MANAGEMENT CONTROL BAR -->
           <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-slate-700">Set Status:</span>
-              <select onchange="updateStatus(${rep.id}, this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+              <span class="text-xs font-bold text-slate-700">Update Report Status:</span>
+              <select onchange="updateStatus(${rep.id}, this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold cursor-pointer">
                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                 <option value="Under Review" ${currentStatus === 'Under Review' ? 'selected' : ''}>Under Review</option>
                 <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
