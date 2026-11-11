@@ -1,215 +1,873 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAPS Portal - Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .bg-caps-primary { background-color: #0E5A36; }
-    .text-caps-primary { color: #0E5A36; }
-    .border-caps-primary { border-color: #0E5A36; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAPS - Login</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --caps-dark: #004b2d;
+            --caps-primary: #006239;
+            --caps-green: #0e8b4c;
+            --caps-light: #d5f2e4;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f8f7;
+            color: #152536;
+        }
+
+        /* HEADER */
+
+        .top-header {
+            height: 82px;
+            width: 100%;
+            background: linear-gradient(100deg, #00452a, #005b35);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 4%;
+        }
+
+        .brand h1 {
+            font-size: 30px;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        /* MAIN BACKGROUND */
+
+        .main-area {
+            position: relative;
+            min-height: calc(100vh - 150px);
+            padding: 38px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+
+            background:
+                radial-gradient(ellipse at 0% 0%, #bce9d5 0%, transparent 30%),
+                radial-gradient(ellipse at 100% 85%, #c8eadb 0%, transparent 30%),
+                #f8fafb;
+        }
+
+        .main-area::before {
+            content: "";
+            position: absolute;
+            width: 125%;
+            height: 500px;
+            left: -15%;
+            top: -350px;
+            border-radius: 50%;
+            border: 45px solid rgba(0, 135, 76, .12);
+            transform: rotate(-12deg);
+        }
+
+        .main-area::after {
+            content: "";
+            position: absolute;
+            width: 130%;
+            height: 450px;
+            right: -55%;
+            bottom: 110px;
+            border-radius: 50%;
+            border: 50px solid rgba(0, 126, 68, .8);
+            transform: rotate(-17deg);
+            pointer-events: none;
+        }
+
+        /* LOGIN CARD */
+
+        .login-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1125px;
+            min-height: 680px;
+            display: grid;
+            grid-template-columns: 40% 60%;
+            background: white;
+            border: 1px solid #dce4e8;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(0, 45, 28, .17);
+        }
+
+        /* LEFT PANEL */
+
+        .left-panel {
+            position: relative;
+            overflow: hidden;
+
+            background:
+                radial-gradient(circle at 90% 20%, #08783e 0%, transparent 40%),
+                linear-gradient(145deg, #00603a, #003e28 75%);
+
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 45px 35px;
+        }
+
+        .left-panel::before {
+            content: "";
+            position: absolute;
+            width: 150%;
+            height: 300px;
+            top: -190px;
+            left: -30%;
+            background: rgba(0, 130, 65, .35);
+            border-radius: 50%;
+            transform: rotate(-20deg);
+        }
+
+        .left-panel::after {
+            content: "";
+            position: absolute;
+            width: 150%;
+            height: 125px;
+            bottom: -45px;
+            left: -20%;
+            background: linear-gradient(90deg, #48c83c, #087e40);
+            border-radius: 50%;
+            transform: rotate(9deg);
+            box-shadow: 0 -25px 0 rgba(99, 220, 66, .65);
+        }
+
+        .left-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+        }
+
+        .portal-name {
+            font-size: 50px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        .green-line {
+            width: 200px;
+            height: 3px;
+            background: #5edb4c;
+            margin: 0 auto 30px;
+        }
+
+        .left-panel h2 {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1.35;
+            margin-bottom: 25px;
+            letter-spacing: -.8px;
+        }
+
+        .left-panel h2 span {
+            color: #78e66c;
+        }
+
+        .left-panel p {
+            font-size: 18px;
+            line-height: 1.5;
+            color: #e2f6eb;
+            max-width: 350px;
+            margin: auto;
+        }
+
+        /* RIGHT PANEL */
+
+        .right-panel {
+            padding: 38px 48px 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(255,255,255,.97);
+        }
+
+        .form-heading {
+            margin-bottom: 22px;
+        }
+
+        .form-heading h2 {
+            font-size: 30px;
+            font-weight: 500;
+            line-height: 1.2;
+            letter-spacing: -.5px;
+            color: #152536;
+            margin: 0 0 7px;
+        }
+
+        .form-heading p {
+            font-size: 16px;
+            color: #64748b;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* NOTIFICATION - MATCHING YOUR SCREENSHOT */
+
+        .message {
+            display: none;
+            width: 100%;
+            padding: 17px 19px;
+            border-radius: 13px;
+            margin-bottom: 22px;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 23px;
+        }
+
+        .message.success {
+            display: block;
+            background: #edf9f0;
+            color: #216b43;
+            border: 1px solid #c8e8d0;
+        }
+
+        .message.error {
+            display: block;
+            background: #fff0f0;
+            color: #b42318;
+            border: 1px solid #ffd0d0;
+        }
+
+        /* FORM */
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+
+        .form-group {
+            width: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #172333;
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            height: 42px;
+            padding: 10px 15px;
+            border: 1px solid #dce3e9;
+            border-radius: 12px;
+            background: #fbfcfd;
+            font-size: 14px;
+            color: #1e293b;
+            outline: none;
+            transition: .2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #0e8b4c;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(14,139,76,.1);
+        }
+
+        .input-wrapper input::placeholder {
+            color: #7c8ba0;
+        }
+
+        /* REMEMBER ME */
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 13px;
+            color: #263342;
+            margin-top: 2px;
+        }
+
+        .remember-row input {
+            width: 17px;
+            height: 17px;
+            accent-color: #006239;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        /* LOGIN BUTTON */
+
+        .login-btn {
+            width: 100%;
+            height: 44px;
+            background: linear-gradient(90deg, #005633, #004a2b);
+            color: white;
+            border: none;
+            border-radius: 11px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-shadow: 0 4px 10px rgba(0,70,40,.18);
+            transition: .3s;
+        }
+
+        .login-btn:hover {
+            background: #00723d;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* SIGN UP */
+
+        .signup-bottom {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .signup-bottom a {
+            color: #006239;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .signup-bottom a:hover {
+            text-decoration: underline;
+        }
+
+        /* SECURITY NOTE */
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8190a4;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+
+        /* FOOTER */
+
+        .bottom-footer {
+            min-height: 68px;
+            background: linear-gradient(90deg, #004b2d, #005735);
+            color: white;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 12px 4%;
+            gap: 15px;
+        }
+
+        .footer-community {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .footer-copy {
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* RESPONSIVE TABLET */
+
+        @media (max-width: 900px) {
+
+            .main-area {
+                padding: 30px 15px;
+            }
+
+            .login-card {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+            }
+
+            .left-panel {
+                min-height: 320px;
+                padding: 30px 20px;
+            }
+
+            .portal-name {
+                font-size: 35px;
+            }
+
+            .left-panel h2 {
+                font-size: 25px;
+                margin-bottom: 12px;
+            }
+
+            .left-panel p {
+                font-size: 14px;
+            }
+
+            .right-panel {
+                padding: 35px 30px;
+            }
+        }
+
+        /* RESPONSIVE MOBILE */
+
+        @media (max-width: 600px) {
+
+            .top-header {
+                height: 65px;
+                padding: 0 20px;
+            }
+
+            .brand h1 {
+                font-size: 25px;
+            }
+
+            .main-area {
+                padding: 20px 12px;
+            }
+
+            .login-card {
+                border-radius: 18px;
+            }
+
+            .left-panel {
+                min-height: 280px;
+            }
+
+            .right-panel {
+                padding: 25px 20px;
+            }
+
+            .form-heading h2 {
+                font-size: 26px;
+            }
+
+            .form-heading p {
+                font-size: 13px;
+            }
+
+            .message {
+                font-size: 14px;
+                padding: 14px 15px;
+            }
+
+            .bottom-footer {
+                flex-direction: column;
+                text-align: center;
+                padding: 18px 10px;
+            }
+        }
+
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-  <div class="min-h-screen flex flex-col lg:flex-row w-full">
-    
-    <!-- LEFT SIDEBAR -->
-    <div class="lg:w-5/12 bg-caps-primary text-white p-6 md:p-12 flex flex-col justify-between min-h-[400px] lg:min-h-screen">
-      <div class="flex items-center space-x-3">
-        <div class="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-          <i data-lucide="home" class="w-6 h-6 text-white"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-xl tracking-tight leading-none">CAPS Portal</h1>
-          <p class="text-xs text-emerald-100 font-medium">Your community, connected.</p>
-        </div>
-      </div>
+<body>
 
-      <div class="my-8 lg:my-0 space-y-6 max-w-md">
-        <div class="space-y-2">
-          <span class="text-[10px] uppercase tracking-widest font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-full inline-block">
-            ROOTED IN COMMUNITY
-          </span>
-          <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
-            A closer community.<br/>A simpler everyday.
-          </h2>
-          <p class="text-emerald-100 text-sm leading-relaxed">
-            A shared space for the residents of Barangay San Antonio De Padua II to stay informed and connected.
-          </p>
+    <!-- HEADER -->
+
+    <header class="top-header">
+
+        <div class="brand">
+            <h1>CAPS</h1>
         </div>
 
-        <div class="relative rounded-2xl overflow-hidden shadow-2xl group border border-white/10">
-          <img 
-            src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" 
-            alt="Barangay Neighborhood" 
-            class="w-full h-52 object-cover transform group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center space-x-2 text-xs font-medium">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Barangay San Antonio De Padua II</span>
-          </div>
+    </header>
+
+    <!-- MAIN AREA -->
+
+    <main class="main-area">
+
+        <div class="login-card">
+
+            <!-- LEFT PANEL -->
+
+            <section class="left-panel">
+
+                <div class="left-content">
+
+                    <div class="portal-name">
+                        CAPS Portal
+                    </div>
+
+                    <div class="green-line"></div>
+
+                    <h2>
+                        A closer community.<br>
+                        A simpler <span>everyday.</span>
+                    </h2>
+
+                    <p>
+                        A shared space for the residents of
+                        Barangay San Antonio De Padua II to
+                        stay informed and connected.
+                    </p>
+
+                </div>
+
+            </section>
+
+            <!-- RIGHT PANEL -->
+
+            <section class="right-panel">
+
+                <div class="form-heading">
+
+                    <h2>Welcome back.</h2>
+
+                    <p>
+                        Sign in to your resident account.
+                        Enter your email and password to continue.
+                    </p>
+
+                </div>
+
+                <!-- NOTIFICATION -->
+
+                <div id="messageBox" class="message"></div>
+
+                <!-- LOGIN FORM -->
+
+                <form id="loginForm" class="login-form">
+
+                    <div class="form-group">
+
+                        <label for="email">Email address</label>
+
+                        <div class="input-wrapper">
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                required
+                                placeholder="Enter your email"
+                                autocomplete="email"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="password">Password</label>
+
+                        <div class="input-wrapper">
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <!-- REMEMBER ME -->
+
+                    <div class="remember-row">
+
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                        >
+
+                        <label for="rememberMe">
+                            Remember me
+                        </label>
+
+                    </div>
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+                        type="submit"
+                        class="login-btn"
+                        id="loginButton"
+                    >
+                        Sign in to your account
+                    </button>
+
+                </form>
+
+                <!-- CREATE ACCOUNT LINK -->
+
+                <div class="signup-bottom">
+
+                    <span>Don't have an account?</span>
+
+                    <a href="register.html">Create an account</a>
+
+                </div>
+
+                <!-- SECURITY NOTE -->
+
+                <div class="security-note">
+                    Your information is safe with us.
+                </div>
+
+            </section>
+
         </div>
-      </div>
 
-      <div class="flex items-center space-x-3 text-xs text-emerald-200 border-t border-white/10 pt-4">
-        <i data-lucide="users" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-        <span><strong>One neighborhood. Many connections.</strong><br/>Built around the people who call it home.</span>
-      </div>
-    </div>
+    </main>
 
-    <!-- RIGHT PANEL: Login Form -->
-    <div class="lg:w-7/12 flex-1 bg-white p-6 sm:p-10 lg:p-16 flex flex-col justify-between">
-      
-      <div class="flex justify-end items-center text-xs text-slate-500">
-        <span>New to CAPS Portal?</span>
-        <a href="register.html" class="ml-2 font-semibold text-caps-primary hover:underline flex items-center">
-          Create an account <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 ml-0.5"></i>
-        </a>
-      </div>
+    <!-- FOOTER -->
 
-      <div class="max-w-md w-full mx-auto my-auto py-8">
-        <!-- Registration Success Notification Banner -->
-        <div id="registration-banner" class="hidden mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs flex items-center space-x-2">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-          <span>Account created successfully! Please sign in with your credentials.</span>
+    <footer class="bottom-footer">
+
+        <div class="footer-community">
+
+            <strong>One neighborhood. Many connections.</strong><br>
+            Built around the people who call it home.
+
         </div>
 
-        <div class="mb-6">
-          <span class="inline-flex items-center space-x-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 mb-3">
-            <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-            <span>RESIDENT / ADMIN PORTAL</span>
-          </span>
-          <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Welcome back.</h2>
-          <p class="text-sm text-slate-500 mt-1">Sign in to stay connected with your community.</p>
+        <div class="footer-copy">
+            © 2026 CAPS Portal. All rights reserved.
         </div>
 
-        <form id="login-form" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Email address</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <i data-lucide="mail" class="w-4 h-4"></i>
-              </span>
-              <input 
-                type="email" 
-                id="login-email"
-                required
-                placeholder="Enter your email address" 
-                class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-              />
-            </div>
-          </div>
+    </footer>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <i data-lucide="lock" class="w-4 h-4"></i>
-              </span>
-              <input 
-                type="password" 
-                id="login-password" 
-                required
-                placeholder="Enter your password" 
-                class="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-              />
-              <button 
-                type="button" 
-                onclick="togglePassword('login-password', 'eye-icon-login')" 
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600">
-                <i data-lucide="eye" id="eye-icon-login" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
+    <!-- LOGIN FUNCTIONALITY -->
 
-          <div class="flex items-center justify-between text-xs pt-1">
-            <label class="flex items-center space-x-2 text-slate-600 cursor-pointer">
-              <input type="checkbox" class="rounded border-slate-300 text-caps-primary focus:ring-caps-primary">
-              <span>Remember me</span>
-            </label>
-            <a href="#" class="text-caps-primary font-medium hover:underline">Forgot password?</a>
-          </div>
+    <script>
 
-          <button 
-            type="submit" 
-            class="w-full bg-caps-primary hover:bg-emerald-900 text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-md transition flex items-center justify-center space-x-2 mt-2">
-            <span>Sign in</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </button>
-        </form>
+        const loginForm = document.getElementById("loginForm");
+        const messageBox = document.getElementById("messageBox");
+        const loginButton = document.getElementById("loginButton");
 
-        <div class="mt-6 text-center text-xs text-slate-500">
-          Not registered yet? <a href="register.html" class="text-caps-primary font-semibold hover:underline">Create an account</a>
-        </div>
-      </div>
+        // SHOW NOTIFICATION
 
-      <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 border-t border-slate-100 pt-4 mt-auto">
-        <p>© 2026 CAPS Portal</p>
-      </div>
+        function showMessage(message, type) {
 
-    </div>
-  </div>
+            messageBox.textContent = message;
+            messageBox.className = "message " + type;
 
-  <script>
-    lucide.createIcons();
+        }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('registered') === 'true') {
-      document.getElementById('registration-banner').classList.remove('hidden');
-    }
+        // CHECK IF USER JUST REGISTERED
 
-    const registeredUsers = JSON.parse(localStorage.getItem('caps_registered_users') || '[]');
+        const urlParams = new URLSearchParams(window.location.search);
 
-    window.togglePassword = function(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.setAttribute('data-lucide', 'eye-off');
-      } else {
-        input.type = 'password';
-        icon.setAttribute('data-lucide', 'eye');
-      }
-      lucide.createIcons();
-    };
+        if (urlParams.get("registered") === "true") {
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value;
+            showMessage(
+                "Account created successfully! You can now sign in.",
+                "success"
+            );
 
-      const isAdmin = email.toLowerCase().includes('admin');
+        }
 
-      if (isAdmin) {
-        const adminUser = {
-          email: email,
-          name: 'Barangay Administrator',
-          isAdmin: true
-        };
-        localStorage.setItem('currentUser', JSON.stringify(adminUser));
-        window.location.href = 'admin.html';
-        return;
-      }
+        // REMEMBER EMAIL
 
-      const foundUser = registeredUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+        const savedEmail = localStorage.getItem("rememberedEmail");
 
-      if (foundUser) {
-        const userObj = {
-          email: foundUser.email,
-          name: `${foundUser.firstName} ${foundUser.lastName}`,
-          phone: foundUser.phone,
-          address: foundUser.address,
-          isAdmin: false
-        };
-        localStorage.setItem('currentUser', JSON.stringify(userObj));
-        window.location.href = 'dashboard.html';
-      } else {
-        alert('Invalid email or password. If you haven\'t registered yet, please create an account.');
-      }
-    });
-  </script>
+        if (savedEmail) {
+
+            document.getElementById("email").value = savedEmail;
+            document.getElementById("rememberMe").checked = true;
+
+        }
+
+        // LOGIN PROCESS
+
+        loginForm.addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+            const email = document
+                .getElementById("email")
+                .value
+                .trim()
+                .toLowerCase();
+
+            const password = document
+                .getElementById("password")
+                .value;
+
+            const rememberMe = document
+                .getElementById("rememberMe")
+                .checked;
+
+            // VALIDATE INPUTS
+
+            if (!email || !password) {
+
+                showMessage(
+                    "Please enter your email and password.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+            loginButton.disabled = true;
+            loginButton.textContent = "Signing in...";
+
+            try {
+
+                // GET REGISTERED ACCOUNTS FROM REGISTER.HTML
+
+                const residents = JSON.parse(
+                    localStorage.getItem("residents") || "[]"
+                );
+
+                // FIND MATCHING EMAIL AND PASSWORD
+
+                const foundUser = residents.find(user =>
+
+                    user.email &&
+                    user.email.trim().toLowerCase() === email &&
+                    user.password === password
+
+                );
+
+                // CHECK ACCOUNT
+
+                if (!foundUser) {
+
+                    showMessage(
+                        "Invalid email or password. Please check your login details.",
+                        "error"
+                    );
+
+                    loginButton.disabled = false;
+                    loginButton.textContent = "Sign in to your account";
+
+                    return;
+
+                }
+
+                // REMEMBER EMAIL IF CHECKED
+
+                if (rememberMe) {
+
+                    localStorage.setItem("rememberedEmail", email);
+
+                } else {
+
+                    localStorage.removeItem("rememberedEmail");
+
+                }
+
+                // CREATE USER INFORMATION
+
+                const userObj = {
+
+                    id: foundUser.id || "",
+                    uid: foundUser.id || "",
+
+                    firstName: foundUser.firstName || "",
+                    lastName: foundUser.lastName || "",
+
+                    name: foundUser.fullName ||
+                        (
+                            (foundUser.firstName || "") +
+                            " " +
+                            (foundUser.lastName || "")
+                        ).trim(),
+
+                    email: foundUser.email || "",
+
+                    phone: foundUser.mobile ||
+                        foundUser.phone || "",
+
+                    mobile: foundUser.mobile ||
+                        foundUser.phone || "",
+
+                    address: foundUser.address || "",
+
+                    role: foundUser.role || "resident",
+
+                    isAdmin: false
+
+                };
+
+                // SAVE CURRENT USER SESSION
+
+                localStorage.setItem(
+                    "currentUser",
+                    JSON.stringify(userObj)
+                );
+
+                // KEEP COMPATIBILITY WITH OTHER PAGES
+
+                localStorage.setItem(
+                    "loggedInUser",
+                    JSON.stringify(userObj)
+                );
+
+                // SUCCESS NOTIFICATION
+
+                showMessage(
+                    "Login successful! Redirecting to your dashboard...",
+                    "success"
+                );
+
+                // REDIRECT TO DASHBOARD
+
+                setTimeout(function() {
+
+                    window.location.href = "dashboard.html";
+
+                }, 800);
+
+            } catch (error) {
+
+                console.error("Login Error:", error);
+
+                showMessage(
+                    "Something went wrong. Please try again.",
+                    "error"
+                );
+
+                loginButton.disabled = false;
+                loginButton.textContent = "Sign in to your account";
+
+            }
+
+        });
+
+    </script>
+
 </body>
 </html>

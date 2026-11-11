@@ -16,6 +16,7 @@
 
     body {
       margin: 0;
+      padding: 0;
       font-family: Arial, Helvetica, sans-serif;
       background: #f5f8f7;
       color: #152536;
@@ -32,67 +33,32 @@
 
     .top-header {
       height: 82px;
+      width: 100%;
       background: linear-gradient(100deg, #00452a, #005b35);
       color: white;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 4%;
+      justify-content: flex-start;
+      padding: 0 4% !important;
+      margin: 0;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 18px;
-    }
-
-    .brand-icon {
-      width: 62px;
-      height: 55px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-right: 1px solid rgba(255,255,255,.5);
-      padding-right: 20px;
-    }
-
-    .brand-icon i {
-      width: 43px;
-      height: 43px;
+      justify-content: flex-start;
+      gap: 0;
+      margin: 0;
+      padding: 0;
     }
 
     .brand h1 {
-      font-size: 26px;
+      font-size: 30px;
       font-weight: 800;
-      margin: 0;
-    }
-
-    .brand p {
-      font-size: 14px;
-      margin: 2px 0 0;
-      color: #d6eee2;
-    }
-
-    .signin {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      font-size: 13px;
-    }
-
-    .signin a {
-      border: 1.5px solid white;
-      border-radius: 30px;
-      padding: 10px 20px;
       color: white;
-      font-weight: 700;
-      text-decoration: none;
-      transition: .3s;
-    }
-
-    .signin a:hover {
-      background: white;
-      color: var(--caps-dark);
+      margin: 0;
+      padding: 0;
+      letter-spacing: -1px;
     }
 
     /* MAIN BACKGROUND */
@@ -100,11 +66,12 @@
     .main-area {
       position: relative;
       min-height: calc(100vh - 150px);
-      padding: 48px 20px;
+      padding: 38px 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+
       background:
         radial-gradient(ellipse at 0% 0%, #bce9d5 0%, transparent 30%),
         radial-gradient(ellipse at 100% 85%, #c8eadb 0%, transparent 30%),
@@ -158,9 +125,11 @@
     .left-panel {
       position: relative;
       overflow: hidden;
+
       background:
         radial-gradient(circle at 90% 20%, #08783e 0%, transparent 40%),
         linear-gradient(145deg, #00603a, #003e28 75%);
+
       color: white;
       display: flex;
       flex-direction: column;
@@ -245,7 +214,7 @@
     /* RIGHT PANEL */
 
     .right-panel {
-      padding: 30px 48px 15px;
+      padding: 38px 48px 25px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -253,32 +222,15 @@
     }
 
     .form-heading {
-      margin-bottom: 20px;
-    }
-
-    .join-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: #d5f3e4;
-      color: #006239;
-      padding: 11px 17px;
-      border-radius: 14px;
-      font-weight: 800;
-      font-size: 14px;
-      margin-bottom: 13px;
-    }
-
-    .join-badge i {
-      width: 24px;
-      height: 24px;
+      margin-bottom: 22px;
     }
 
     .form-heading h2 {
-      font-size: 35px;
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -1px;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.2;
+      letter-spacing: -.5px;
+      color: #152536;
       margin: 0 0 7px;
     }
 
@@ -354,6 +306,8 @@
       text-transform: none;
     }
 
+    /* PASSWORD TOGGLE */
+
     .password-toggle {
       position: absolute;
       right: 12px;
@@ -408,7 +362,7 @@
       text-decoration: underline;
     }
 
-    /* BUTTON */
+    /* CREATE ACCOUNT BUTTON */
 
     .create-btn {
       width: 100%;
@@ -420,10 +374,12 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
+
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
+
       box-shadow: 0 4px 10px rgba(0,70,40,.18);
       transition: .3s;
     }
@@ -439,6 +395,8 @@
       transform: none;
     }
 
+    /* SECURITY NOTE */
+
     .security-note {
       display: flex;
       align-items: center;
@@ -446,12 +404,34 @@
       gap: 9px;
       color: #8190a4;
       font-size: 12px;
-      margin-top: 12px;
+      margin-top: 15px;
     }
 
     .security-note i {
       width: 15px;
       height: 15px;
+    }
+
+    /* SIGN IN BELOW FORM */
+
+    .signin-bottom {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .signin-bottom a {
+      color: #006239;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .signin-bottom a:hover {
+      text-decoration: underline;
     }
 
     /* FOOTER */
@@ -460,9 +440,11 @@
       min-height: 68px;
       background: linear-gradient(90deg, #004b2d, #005735);
       color: white;
+
       display: flex;
       justify-content: space-between;
       align-items: center;
+
       padding: 12px 4%;
       gap: 15px;
     }
@@ -501,9 +483,10 @@
       text-decoration: underline;
     }
 
-    /* RESPONSIVE */
+    /* RESPONSIVE TABLET */
 
     @media (max-width: 900px) {
+
       .main-area {
         padding: 30px 15px;
       }
@@ -541,41 +524,17 @@
       }
     }
 
+    /* RESPONSIVE MOBILE */
+
     @media (max-width: 600px) {
+
       .top-header {
-        height: 70px;
-        padding: 0 16px;
-      }
-
-      .brand-icon {
-        width: 45px;
-        padding-right: 10px;
-      }
-
-      .brand-icon i {
-        width: 32px;
-        height: 32px;
-      }
-
-      .brand {
-        gap: 10px;
+        height: 65px;
+        padding: 0 20px !important;
       }
 
       .brand h1 {
-        font-size: 18px;
-      }
-
-      .brand p {
-        font-size: 10px;
-      }
-
-      .signin {
-        font-size: 10px;
-        gap: 5px;
-      }
-
-      .signin a {
-        padding: 8px 11px;
+        font-size: 25px;
       }
 
       .main-area {
@@ -595,14 +554,10 @@
       }
 
       .form-heading h2 {
-        font-size: 27px;
+        font-size: 26px;
       }
 
       .form-heading p {
-        font-size: 13px;
-      }
-
-      .join-badge {
         font-size: 13px;
       }
 
@@ -625,6 +580,7 @@
         justify-content: center;
       }
     }
+
   </style>
 </head>
 
@@ -635,24 +591,10 @@
   <header class="top-header">
 
     <div class="brand">
-      <div class="brand-icon">
-        <i data-lucide="house"></i>
-      </div>
-
-      <div>
-        <h1>CAPS</h1>
-      </div>
-    </div>
-
-    <div class="signin">
-      <p>Already have an account?</p>
-      <a href="login.html">
-        Sign in <i data-lucide="arrow-right" style="width:15px;height:15px;display:inline-block;vertical-align:middle;"></i>
-      </a>
+      <h1>CAPS</h1>
     </div>
 
   </header>
-
 
   <!-- MAIN AREA -->
 
@@ -665,8 +607,6 @@
       <section class="left-panel">
 
         <div class="left-content">
-
-          <i data-lucide="house" class="community-logo"></i>
 
           <div class="portal-name">
             CAPS Portal
@@ -689,17 +629,11 @@
 
       </section>
 
-
       <!-- RIGHT PANEL -->
 
       <section class="right-panel">
 
         <div class="form-heading">
-
-          <span class="join-badge">
-            <i data-lucide="user-plus"></i>
-          
-          </span>
 
           <h2>Create your resident account.</h2>
 
@@ -710,7 +644,6 @@
 
         </div>
 
-
         <!-- REGISTRATION FORM -->
 
         <form id="register-form" class="register-form">
@@ -720,70 +653,80 @@
           <div class="form-grid">
 
             <div class="form-group">
+
               <label for="reg-firstname">First name</label>
 
               <div class="input-wrapper">
-                <i data-lucide="user"></i>
+
                 <input
                   type="text"
                   id="reg-firstname"
                   required
                   placeholder="First name"
                 >
+
               </div>
+
             </div>
 
             <div class="form-group">
+
               <label for="reg-lastname">Last name</label>
 
               <div class="input-wrapper">
-                <i data-lucide="user"></i>
+
                 <input
                   type="text"
                   id="reg-lastname"
                   required
                   placeholder="Last name"
                 >
+
               </div>
+
             </div>
 
           </div>
-
 
           <!-- EMAIL AND MOBILE -->
 
           <div class="form-grid">
 
             <div class="form-group">
+
               <label for="reg-email">Email address</label>
 
               <div class="input-wrapper">
-                <i data-lucide="mail"></i>
+
                 <input
                   type="email"
                   id="reg-email"
                   required
                   placeholder="Enter your email"
                 >
+
               </div>
+
             </div>
 
             <div class="form-group">
+
               <label for="reg-phone">Mobile number</label>
 
               <div class="input-wrapper">
-                <i data-lucide="phone"></i>
+
                 <input
                   type="tel"
                   id="reg-phone"
                   required
                   placeholder="Mobile no."
                 >
+
               </div>
+
             </div>
 
           </div>
-
 
           <!-- ADDRESS -->
 
@@ -792,13 +735,14 @@
             <label for="reg-address">Residential address</label>
 
             <div class="input-wrapper">
-              <i data-lucide="map-pin"></i>
+
               <input
                 type="text"
                 id="reg-address"
                 required
                 placeholder="Enter your address"
               >
+
             </div>
 
             <p class="field-note">
@@ -806,7 +750,6 @@
             </p>
 
           </div>
-
 
           <!-- PASSWORDS -->
 
@@ -817,8 +760,6 @@
               <label for="reg-pass">Password</label>
 
               <div class="input-wrapper">
-
-                <i data-lucide="lock"></i>
 
                 <input
                   type="password"
@@ -841,14 +782,11 @@
 
             </div>
 
-
             <div class="form-group">
 
               <label for="reg-confirm-pass">Confirm password</label>
 
               <div class="input-wrapper">
-
-                <i data-lucide="lock"></i>
 
                 <input
                   type="password"
@@ -877,7 +815,6 @@
             Use at least 6 characters for your password.
           </p>
 
-
           <!-- TERMS AND CONDITIONS -->
 
           <div class="terms">
@@ -889,18 +826,22 @@
             >
 
             <label for="reg-terms">
+
               I agree to the
-              <a href="terms.html">Terms of use</a>
-              and acknowledge the
-              <a href="privacy.html">Privacy policy</a>.
+
+              <a href="terms.html">Terms of use</a>.
+
             </label>
 
           </div>
 
+          <!-- CREATE ACCOUNT BUTTON -->
 
-          <!-- SUBMIT BUTTON -->
-
-          <button type="submit" class="create-btn" id="create-btn">
+          <button
+            type="submit"
+            class="create-btn"
+            id="create-btn"
+          >
 
             <span>Create account</span>
 
@@ -910,14 +851,21 @@
 
         </form>
 
-
         <!-- SECURITY NOTE -->
 
         <div class="security-note">
 
-          <i data-lucide="lock"></i>
-
           <span>Your information is safe with us.</span>
+
+        </div>
+
+        <!-- SIGN IN BELOW SECURITY NOTE -->
+
+        <div class="signin-bottom">
+
+          <span>Already have an account?</span>
+
+          <a href="login.html">Sign in</a>
 
         </div>
 
@@ -927,14 +875,11 @@
 
   </main>
 
-
   <!-- FOOTER -->
 
   <footer class="bottom-footer">
 
     <div class="footer-community">
-
-      <i data-lucide="users"></i>
 
       <span>
         <strong>One neighborhood. Many connections.</strong><br>
@@ -947,253 +892,118 @@
       © 2026 CAPS Portal. All rights reserved.
     </div>
 
-    <div class="footer-links">
-
-    </div>
-
   </footer>
 
+  <!-- LOCAL STORAGE REGISTRATION SCRIPT -->
 
-  <!-- FIREBASE REGISTRATION SCRIPT -->
+  <script>
 
-  <script type="module">
-
-    import {
-      auth,
-      db,
-      createUserWithEmailAndPassword,
-      collection,
-      addDoc
-    } from './firebase-config.js';
-
-
-    // INITIALIZE ICONS
-
+    // Initialize icons
     lucide.createIcons();
 
-
-    // SHOW / HIDE PASSWORD
-
+    // Show / hide password
     window.togglePassword = function(inputId, button) {
-
       const input = document.getElementById(inputId);
 
       if (input.type === 'password') {
-
         input.type = 'text';
-
         button.innerHTML = '<i data-lucide="eye-off"></i>';
-
       } else {
-
         input.type = 'password';
-
         button.innerHTML = '<i data-lucide="eye"></i>';
-
       }
 
       lucide.createIcons();
-
     };
 
+    // Register a resident using browser Local Storage
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+      e.preventDefault();
 
-    // REGISTRATION FORM
+      const fname = document.getElementById('reg-firstname').value.trim();
+      const lname = document.getElementById('reg-lastname').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const mobile = document.getElementById('reg-phone').value.trim();
+      const address = document.getElementById('reg-address').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      const confirmPassword = document.getElementById('reg-confirm-pass').value;
+      const agree = document.getElementById('reg-terms').checked;
 
-    document
-      .getElementById('register-form')
-      .addEventListener('submit', async (e) => {
+      if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
 
-        e.preventDefault();
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters.');
+        return;
+      }
 
+      if (!agree) {
+        alert('Please agree to the Terms of use and Privacy policy.');
+        return;
+      }
 
-        // GET FORM VALUES
+      const createBtn = document.getElementById('create-btn');
+      createBtn.disabled = true;
+      createBtn.querySelector('span').textContent = 'Creating account...';
 
-        const fname = document
-          .getElementById('reg-firstname')
-          .value.trim();
+      try {
 
-        const lname = document
-          .getElementById('reg-lastname')
-          .value.trim();
+        // Get existing resident accounts, or start with an empty array.
+        const residents = JSON.parse(localStorage.getItem('residents') || '[]');
 
-        const email = document
-          .getElementById('reg-email')
-          .value.trim();
+        // Prevent duplicate email registration.
+        const emailExists = residents.some(
+          resident => resident.email.toLowerCase() === email
+        );
 
-        const mobile = document
-          .getElementById('reg-phone')
-          .value.trim();
-
-        const address = document
-          .getElementById('reg-address')
-          .value.trim();
-
-        const password = document
-          .getElementById('reg-pass')
-          .value;
-
-        const confirmPassword = document
-          .getElementById('reg-confirm-pass')
-          .value;
-
-        const agree = document
-          .getElementById('reg-terms')
-          .checked;
-
-
-        // VALIDATION
-
-        if (password !== confirmPassword) {
-
-          alert('Passwords do not match!');
-
+        if (emailExists) {
+          alert('This email is already registered.');
           return;
-
         }
 
-        if (password.length < 6) {
-
-          alert('Password must be at least 6 characters.');
-
-          return;
-
-        }
-
-        if (!agree) {
-
-          alert('Please agree to the Terms of use and Privacy policy.');
-
-          return;
-
-        }
-
-
-        const createBtn = document.getElementById('create-btn');
-
-        createBtn.disabled = true;
-
-        createBtn.querySelector('span').textContent =
-          'Creating account...';
-
-
-        try {
-
-          // CREATE FIREBASE AUTH ACCOUNT
-
-          const userCredential =
-            await createUserWithEmailAndPassword(
-              auth,
-              email,
-              password
-            );
-
-          const user = userCredential.user;
-
-
-          // SAVE RESIDENT INFORMATION TO FIRESTORE
-
-          await addDoc(collection(db, 'residents'), {
-
-            uid: user.uid,
-
-            firstName: fname,
-
-            lastName: lname,
-
-            fullName: `${fname} ${lname}`,
-
-            email: email,
-
-            mobile: mobile,
-
-            address: address,
-
-            role: 'resident',
-
-            createdAt: new Date()
-
-          });
-
-
-          // SAVE REGISTERED USER TO LOCAL STORAGE
-
-          localStorage.setItem(
-            'registeredUser',
-            JSON.stringify({
-
-              uid: user.uid,
-
-              name: `${fname} ${lname}`,
-
-              email: email
-
-            })
-          );
-
-
-          // SUCCESS
-
-          alert('Account created successfully!');
-
-          window.location.href =
-            'login.html?registered=true';
-
-
-        } catch (error) {
-
-          console.error('Registration Error:', error);
-
-          let message = 'Registration failed. Please try again.';
-
-          switch (error.code) {
-
-            case 'auth/email-already-in-use':
-
-              message = 'This email is already registered.';
-
-              break;
-
-            case 'auth/invalid-email':
-
-              message = 'Please enter a valid email address.';
-
-              break;
-
-            case 'auth/weak-password':
-
-              message = 'Your password is too weak.';
-
-              break;
-
-            case 'auth/network-request-failed':
-
-              message = 'Network error. Please check your internet connection.';
-
-              break;
-
-            case 'permission-denied':
-
-            case 'firestore/permission-denied':
-
-              message = 'Unable to save your information. Please check your Firestore security rules.';
-
-              break;
-
-          }
-
-          alert(message);
-
-
-          // RESTORE BUTTON
-
-          createBtn.disabled = false;
-
-          createBtn.querySelector('span').textContent =
-            'Create account';
-
-        }
-
-      });
+        const newResident = {
+          id: 'resident_' + Date.now(),
+          firstName: fname,
+          lastName: lname,
+          fullName: `${fname} ${lname}`,
+          email: email,
+          mobile: mobile,
+          address: address,
+          password: password,
+          role: 'resident',
+          createdAt: new Date().toISOString()
+        };
+
+        residents.push(newResident);
+        localStorage.setItem('residents', JSON.stringify(residents));
+
+        // Keep this key for pages that use the most recently registered account.
+        localStorage.setItem('registeredUser', JSON.stringify({
+          id: newResident.id,
+          uid: newResident.id,
+          name: newResident.fullName,
+          email: newResident.email,
+          role: newResident.role
+        }));
+
+        // No success notification. Redirect directly to login page.
+        window.location.href = 'login.html?registered=true';
+
+      } catch (error) {
+
+        console.error('Registration Error:', error);
+        alert('Registration failed. Your browser may have Local Storage disabled or full.');
+
+      } finally {
+
+        createBtn.disabled = false;
+        createBtn.querySelector('span').textContent = 'Create account';
+
+      }
+
+    });
 
   </script>
 
