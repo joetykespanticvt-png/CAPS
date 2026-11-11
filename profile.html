@@ -6,84 +6,242 @@
   <title>CAPS Portal - Profile Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            caps: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Polish & motion layer: styling only, no changes to markup or logic -->
   <style>
-    .bg-caps-primary { background-color: #0F3854; }
+    html { scroll-behavior: smooth; }
+    ::selection { background: #bbf7d0; color: #14532d; }
+
+    @keyframes capsFadeUp   { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+    @keyframes capsFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes capsSlideDown{ from { opacity: 0; translate: 0 -100%; } to { opacity: 1; translate: 0 0; } }
+    @keyframes capsSlideLeft{ from { opacity: 0; translate: -24px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes capsPop      { from { opacity: 0; scale: .94; translate: 0 8px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+
+    /* Page entrance */
+    body > header { animation: capsSlideDown .5s cubic-bezier(.22,1,.36,1) both; }
+    main > aside  { animation: capsSlideLeft .6s cubic-bezier(.22,1,.36,1) .1s both; }
+    main > section > div:nth-child(1) { animation: capsFadeUp .6s cubic-bezier(.22,1,.36,1) .2s both; }
+    main > section > div:nth-child(2) { animation: capsFadeUp .6s cubic-bezier(.22,1,.36,1) .32s both; }
+
+    /* Staggered form fields */
+    main section form > * { animation: capsFadeUp .5s cubic-bezier(.22,1,.36,1) both; }
+    main section form > *:nth-child(1) { animation-delay: .35s; }
+    main section form > *:nth-child(2) { animation-delay: .40s; }
+    main section form > *:nth-child(3) { animation-delay: .45s; }
+    main section form > *:nth-child(4) { animation-delay: .50s; }
+    main section form > *:nth-child(5) { animation-delay: .55s; }
+    main section form > *:nth-child(6) { animation-delay: .60s; }
+    main section form > *:nth-child(7) { animation-delay: .65s; }
+
+    /* Cards */
+    main section > div { transition: box-shadow .3s ease, translate .3s ease, border-color .3s ease; }
+    main section > div:hover { translate: 0 -2px; border-color: #bbf7d0; box-shadow: 0 14px 30px -14px rgba(22,101,52,.28); }
+
+    /* Header */
+    header a { transition: letter-spacing .3s ease, opacity .2s ease; }
+    header a:hover { letter-spacing: .16em; opacity: .9; }
+    header button { transition: background-color .2s ease, translate .2s ease, box-shadow .2s ease; }
+    header button:hover { translate: 0 -1px; box-shadow: 0 6px 14px -6px rgba(0,0,0,.4); }
+    #user-avatar { transition: box-shadow .25s ease, scale .25s ease; }
+    #user-avatar:hover { scale: 1.08; box-shadow: 0 0 0 3px rgba(187,247,208,.45); }
+
+    /* Sidebar navigation */
+    main aside nav a { transition: background-color .25s ease, color .25s ease, translate .25s ease, box-shadow .25s ease; }
+    main aside nav a:hover { translate: 4px 0; }
+    main aside nav a svg { transition: translate .25s ease, scale .25s ease; }
+    main aside nav a:hover svg { scale: 1.12; }
+    main aside nav a[href="profile.html"] { box-shadow: inset 3px 0 0 #16a34a; }
+
+    /* Inputs */
+    main section input { transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease; }
+    main section input:hover { border-color: #86efac; }
+    main section input:focus { border-color: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.15); }
+
+    /* Buttons */
+    main section button { transition: background-color .2s ease, color .2s ease, translate .2s ease, box-shadow .2s ease, scale .15s ease; }
+    main section button[type="submit"]:hover { translate: 0 -2px; box-shadow: 0 10px 20px -8px rgba(22,163,74,.55); }
+    main section button[type="button"]:hover { translate: 0 -1px; }
+
+    /* Profile picture */
+    #prof-pic-preview { transition: box-shadow .3s ease, scale .3s ease; }
+    #prof-pic-preview:hover { scale: 1.05; box-shadow: 0 0 0 5px rgba(34,197,94,.22); }
+
+    /* Password feedback message */
+    #pw-message { animation: capsFadeUp .3s ease both; }
+
+    /* Logout modal */
+    #logout-modal { animation: capsFadeIn .2s ease both; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+    #logout-modal > div { animation: capsPop .3s cubic-bezier(.22,1,.36,1) both; }
+    #logout-modal button { transition: background-color .2s ease, translate .2s ease, box-shadow .2s ease; }
+    #logout-modal button:hover { translate: 0 -1px; }
+
+    /* Keyboard focus visibility */
+    a:focus-visible, button:focus-visible { outline: 2px solid #22c55e; outline-offset: 2px; }
+
+    /* Respect reduced-motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
   </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <header class="bg-caps-primary text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="bg-caps-900 text-white sticky top-0 z-40 shadow-lg border-b border-caps-800">
+    <div class="w-full px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
+
+        <!-- CAPS (left edge) -->
+        <a href="dashboard.html" class="text-xl font-extrabold tracking-widest text-white">CAPS</a>
+
+        <!-- Profile + Log Out (right edge) -->
         <div class="flex items-center space-x-3">
-          <div class="p-2 bg-white/10 rounded-lg">
-            <i data-lucide="home" class="w-6 h-6 text-white"></i>
+          <div class="w-8 h-8 rounded-full bg-caps-200 text-caps-900 font-bold flex items-center justify-center text-xs overflow-hidden shadow-sm" id="user-avatar">JD</div>
+          <div class="hidden lg:block text-left">
+            <p class="text-xs font-semibold leading-tight text-white" id="user-display-name">Juan Dela Cruz</p>
+            <p class="text-[10px] text-caps-200 font-medium">Verified Resident</p>
           </div>
-          <div>
-            <h1 class="font-bold text-lg leading-none">CAPS Portal</h1>
-            <p class="text-[11px] text-slate-300 font-medium">Barangay San Antonio De Padua II</p>
-          </div>
+          <button type="button" onclick="openLogoutModal()" title="Log Out" class="flex items-center space-x-1.5 text-white text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Log Out</span>
+          </button>
         </div>
 
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-full bg-teal-400 text-slate-950 font-bold flex items-center justify-center text-xs" id="user-avatar">JD</div>
-          <span class="hidden lg:inline text-xs font-semibold" id="user-display-name">Juan Dela Cruz</span>
-        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <aside class="lg:col-span-3 space-y-4">
-      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigation</h3>
-        <nav class="space-y-1">
-          <a href="dashboard.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
-            <i data-lucide="rss" class="w-4 h-4"></i>
+  <main class="flex-1 w-full flex flex-col lg:flex-row">
+    <!-- Navigation: stacked card on mobile, full-height left-edge sidebar on desktop (lg+) -->
+    <aside class="px-4 sm:px-6 pt-6 lg:p-0 lg:w-80 lg:shrink-0 lg:bg-white lg:border-r lg:border-slate-200 lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
+      <div class="bg-white rounded-xl p-6 border border-slate-200/80 shadow-sm lg:rounded-none lg:border-0 lg:shadow-none lg:p-8">
+        <h3 class="text-sm lg:text-base font-bold text-slate-400 uppercase tracking-wider mb-4 lg:mb-6">Navigation</h3>
+        <nav class="space-y-2 lg:space-y-3">
+          <a href="dashboard.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition">
+            <i data-lucide="rss" class="w-5 h-5 lg:w-6 lg:h-6"></i>
             <span>Community Feed</span>
           </a>
-          <a href="my-reports.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
-            <i data-lucide="file-text" class="w-4 h-4"></i>
+          <a href="my-reports.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition">
+            <i data-lucide="file-text" class="w-5 h-5 lg:w-6 lg:h-6"></i>
             <span>My Reports</span>
           </a>
-          <a href="profile.html" class="w-full flex items-center space-x-2.5 px-3 py-2.5 text-xs font-bold rounded-lg bg-slate-100 text-caps-primary">
-            <i data-lucide="user" class="w-4 h-4"></i>
+          <a href="profile.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-bold rounded-xl bg-caps-50 text-caps-700 border border-caps-100">
+            <i data-lucide="user" class="w-5 h-5 lg:w-6 lg:h-6"></i>
             <span>Profile Settings</span>
           </a>
         </nav>
       </div>
     </aside>
 
-    <section class="lg:col-span-9 space-y-4">
+    <section class="flex-1 min-w-0 grid grid-cols-1 xl:grid-cols-2 gap-6 items-start px-4 sm:px-6 lg:px-10 py-6">
       <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
         <h2 class="text-lg font-bold text-slate-900 mb-1">Resident Profile Settings</h2>
         <p class="text-xs text-slate-500 mb-6">Manage your resident credentials and contact details in Barangay San Antonio De Padua II.</p>
 
         <form onsubmit="saveProfile(event)" class="space-y-4 max-w-xl">
-          <div class="grid grid-cols-2 gap-3">
+
+          <!-- Profile picture -->
+          <div class="flex items-center space-x-4">
+            <div id="prof-pic-preview" class="w-20 h-20 rounded-full bg-caps-200 text-caps-900 font-bold flex items-center justify-center text-xl overflow-hidden shrink-0">JD</div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-              <input type="text" id="prof-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" required>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Profile Picture</label>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="document.getElementById('pic-gallery').click()" class="flex items-center space-x-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-caps-50 hover:text-caps-700 transition">
+                  <i data-lucide="image" class="w-4 h-4"></i>
+                  <span>Choose from Gallery</span>
+                </button>
+                <button type="button" onclick="document.getElementById('pic-camera').click()" class="flex items-center space-x-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-caps-50 hover:text-caps-700 transition">
+                  <i data-lucide="camera" class="w-4 h-4"></i>
+                  <span>Take Photo</span>
+                </button>
+                <button type="button" id="pic-remove" onclick="removePicture()" class="hidden items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <span>Remove</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1.5">Your new picture is saved automatically.</p>
+              <input type="file" id="pic-gallery" accept="image/*" class="hidden" onchange="handlePicture(event)">
+              <input type="file" id="pic-camera" accept="image/*" capture="user" class="hidden" onchange="handlePicture(event)">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+              <input type="text" id="prof-first-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-              <input type="email" id="prof-email" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" required>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Middle Name</label>
+              <input type="text" id="prof-middle-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition">
             </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+              <input type="text" id="prof-last-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="prof-email" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Residential Address</label>
-            <input type="text" id="prof-address" placeholder="Purok / Sitio, Street" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+            <input type="text" id="prof-address" placeholder="Purok / Sitio, Street" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition">
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number</label>
-            <input type="tel" id="prof-phone" placeholder="09XX XXX XXXX" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+            <input type="tel" id="prof-phone" placeholder="09XX XXX XXXX" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition">
           </div>
 
           <div class="pt-2">
-            <button type="submit" class="bg-caps-primary text-white text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <button type="submit" class="bg-caps-600 text-white text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-caps-700 transition shadow-sm active:scale-95">
               Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Change password -->
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+        <h2 class="text-lg font-bold text-slate-900 mb-1">Change Password</h2>
+        <p class="text-xs text-slate-500 mb-6">Enter your current password, then choose a new one.</p>
+
+        <form onsubmit="changePassword(event)" class="space-y-4 max-w-xl">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Current Password</label>
+            <input type="password" id="pw-current" autocomplete="current-password" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">New Password</label>
+            <input type="password" id="pw-new" autocomplete="new-password" minlength="8" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
+            <p class="text-[11px] text-slate-400 mt-1">At least 8 characters.</p>
+          </div>
+          <p id="pw-message" class="text-xs font-medium hidden"></p>
+          <div class="pt-2">
+            <button type="submit" class="bg-caps-600 text-white text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-caps-700 transition shadow-sm active:scale-95">
+              Update Password
             </button>
           </div>
         </form>
@@ -91,28 +249,235 @@
     </section>
   </main>
 
+  <!-- LOGOUT CONFIRMATION MODAL -->
+  <div id="logout-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/50 px-4" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm p-6">
+      <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-3">
+        <i data-lucide="log-out" class="w-5 h-5"></i>
+      </div>
+      <h3 id="logout-title" class="text-base font-bold text-slate-900">Are you sure you want to log out?</h3>
+      <p class="text-xs text-slate-500 mt-1">You will need to sign in again to access your account.</p>
+      <div class="flex justify-end space-x-2 mt-5">
+        <button type="button" onclick="closeLogoutModal()" class="px-4 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition">No</button>
+        <button type="button" onclick="confirmLogout()" class="px-4 py-2.5 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Yes</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     lucide.createIcons();
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz', email: 'juan@example.com', address: '', phone: '' };
+
+    // Registered accounts (the same list login.html checks)
+    const USERS_KEY = 'caps_registered_users';
+    function getUsers() {
+      try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch (err) { return []; }
+    }
+    function findUserIndex(users, email) {
+      return users.findIndex(u => (u.email || '').toLowerCase() === (email || '').toLowerCase());
+    }
+    // Saves changes to the registered account so they survive logout / login
+    function syncRegisteredUser(oldEmail, changes) {
+      const users = getUsers();
+      const i = findUserIndex(users, oldEmail);
+      if (i === -1) return false;
+      users[i] = Object.assign({}, users[i], changes);
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      return true;
+    }
+
+    // Fill in missing details from the registered account
+    (function loadFromAccount() {
+      const users = getUsers();
+      const i = findUserIndex(users, currentUser.email);
+      if (i === -1) return;
+      const acc = users[i];
+      if (currentUser.firstName === undefined && acc.firstName !== undefined) {
+        currentUser.firstName = acc.firstName;
+        currentUser.middleName = acc.middleName || '';
+        currentUser.lastName = acc.lastName || '';
+      }
+      if (currentUser.picture === undefined && acc.picture) currentUser.picture = acc.picture;
+      if (!currentUser.address && acc.address) currentUser.address = acc.address;
+      if (!currentUser.phone && acc.phone) currentUser.phone = acc.phone;
+    })();
+
+    // Split an existing single "name" into first / middle / last if the new fields don't exist yet
+    if (currentUser.firstName === undefined) {
+      const parts = (currentUser.name || '').trim().split(/\s+/).filter(Boolean);
+      currentUser.firstName = parts[0] || '';
+      currentUser.lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+      currentUser.middleName = parts.length > 2 ? parts.slice(1, -1).join(' ') : '';
+    }
+    currentUser.name = [currentUser.firstName, currentUser.middleName, currentUser.lastName].filter(Boolean).join(' ');
+
+    let pendingPicture = currentUser.picture || '';
+
+    function initials(name) {
+      return name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase();
+    }
+
+    function renderAvatar(el, picture, name) {
+      if (picture) {
+        el.innerHTML = '<img src="' + picture + '" alt="Profile picture" class="w-full h-full object-cover">';
+      } else {
+        el.textContent = initials(name);
+      }
+    }
+
+    function updatePictureUI() {
+      renderAvatar(document.getElementById('prof-pic-preview'), pendingPicture, currentUser.name);
+      document.getElementById('pic-remove').classList.toggle('hidden', !pendingPicture);
+      document.getElementById('pic-remove').classList.toggle('flex', !!pendingPicture);
+    }
+
     document.getElementById('user-display-name').innerText = currentUser.name;
-    document.getElementById('user-avatar').innerText = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
-    
-    document.getElementById('prof-name').value = currentUser.name || '';
+    renderAvatar(document.getElementById('user-avatar'), currentUser.picture, currentUser.name);
+
+    document.getElementById('prof-first-name').value = currentUser.firstName || '';
+    document.getElementById('prof-middle-name').value = currentUser.middleName || '';
+    document.getElementById('prof-last-name').value = currentUser.lastName || '';
     document.getElementById('prof-email').value = currentUser.email || '';
     document.getElementById('prof-address').value = currentUser.address || '';
     document.getElementById('prof-phone').value = currentUser.phone || '';
+    updatePictureUI();
+
+    // Resize the chosen photo so it fits in localStorage
+    function handlePicture(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Please choose an image file.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const img = new Image();
+        img.onload = function () {
+          const size = 256;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          const sy = (img.height - side) / 2;
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+          pendingPicture = canvas.toDataURL('image/jpeg', 0.85);
+          updatePictureUI();
+          savePictureNow();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function removePicture() {
+      pendingPicture = '';
+      updatePictureUI();
+      savePictureNow();
+    }
+
+    // Saves the picture right away (to the session and the registered account)
+    function savePictureNow() {
+      try {
+        currentUser.picture = pendingPicture;
+        delete currentUser.password;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        syncRegisteredUser(currentUser.email, { picture: pendingPicture });
+        renderAvatar(document.getElementById('user-avatar'), pendingPicture, currentUser.name);
+      } catch (err) {
+        alert('Could not save the picture because browser storage is full. Try a smaller photo or clear some saved data.');
+      }
+    }
 
     function saveProfile(e) {
       e.preventDefault();
-      currentUser.name = document.getElementById('prof-name').value;
+      const oldEmail = currentUser.email;
+      currentUser.firstName = document.getElementById('prof-first-name').value.trim();
+      currentUser.middleName = document.getElementById('prof-middle-name').value.trim();
+      currentUser.lastName = document.getElementById('prof-last-name').value.trim();
+      currentUser.name = [currentUser.firstName, currentUser.middleName, currentUser.lastName].filter(Boolean).join(' ');
       currentUser.email = document.getElementById('prof-email').value;
       currentUser.address = document.getElementById('prof-address').value;
       currentUser.phone = document.getElementById('prof-phone').value;
+      currentUser.picture = pendingPicture;
 
+      delete currentUser.password; // password lives only in the registered account
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      syncRegisteredUser(oldEmail, {
+        firstName: currentUser.firstName,
+        middleName: currentUser.middleName,
+        lastName: currentUser.lastName,
+        email: currentUser.email,
+        address: currentUser.address,
+        phone: currentUser.phone,
+        picture: currentUser.picture
+      });
       alert('Profile updated successfully!');
       window.location.reload();
+    }
+
+    function openLogoutModal() {
+      const m = document.getElementById('logout-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeLogoutModal() {
+      const m = document.getElementById('logout-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function confirmLogout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeLogoutModal();
+    });
+    document.getElementById('logout-modal').addEventListener('click', function (e) {
+      if (e.target === this) closeLogoutModal();
+    });
+
+    function showPwMessage(text, ok) {
+      const el = document.getElementById('pw-message');
+      el.textContent = text;
+      el.className = 'text-xs font-medium ' + (ok ? 'text-caps-700' : 'text-red-600');
+    }
+
+    function changePassword(e) {
+      e.preventDefault();
+      const current = document.getElementById('pw-current').value;
+      const next = document.getElementById('pw-new').value;
+
+      const users = getUsers();
+      const idx = findUserIndex(users, currentUser.email);
+      if (idx === -1) {
+        showPwMessage('Account not found. Please log in again with your registered account.', false);
+        return;
+      }
+      if (users[idx].password !== current) {
+        showPwMessage('Current password is incorrect.', false);
+        return;
+      }
+      if (next.length < 8) {
+        showPwMessage('New password must be at least 8 characters.', false);
+        return;
+      }
+      if (next === current) {
+        showPwMessage('New password must be different from your current password.', false);
+        return;
+      }
+
+      syncRegisteredUser(currentUser.email, { password: next });
+      document.getElementById('pw-current').value = '';
+      document.getElementById('pw-new').value = '';
+      showPwMessage('Password updated successfully.', true);
     }
   </script>
 </body>
