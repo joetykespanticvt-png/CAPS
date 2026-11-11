@@ -144,27 +144,16 @@
         <div class="mt-6 text-center text-xs text-slate-500">
           Not registered yet? <a href="register.html" class="text-caps-primary font-semibold hover:underline">Create an account</a>
         </div>
-
-        <div class="mt-6 p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-start space-x-2.5 text-xs text-slate-500">
-          <i data-lucide="help-circle" class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5"></i>
-          <span>Need a hand getting started? Contact your barangay office for help with your account.</span>
-        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 border-t border-slate-100 pt-4 mt-auto">
         <p>© 2026 CAPS Portal</p>
-        <div class="space-x-4 mt-2 sm:mt-0">
-          <a href="#" class="hover:underline">Privacy policy</a>
-          <a href="#" class="hover:underline">Need help?</a>
-        </div>
       </div>
 
     </div>
   </div>
 
-  <script type="module">
-    import { auth, signInWithEmailAndPassword } from './firebase-config.js';
-
+  <script>
     lucide.createIcons();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -172,10 +161,7 @@
       document.getElementById('registration-banner').classList.remove('hidden');
     }
 
-    const savedUser = JSON.parse(localStorage.getItem('registeredUser'));
-    if (savedUser && savedUser.email) {
-      document.getElementById('login-email').value = savedUser.email;
-    }
+    const registeredUsers = JSON.parse(localStorage.getItem('caps_registered_users') || '[]');
 
     window.togglePassword = function(inputId, iconId) {
       const input = document.getElementById(inputId);
@@ -190,28 +176,38 @@
       lucide.createIcons();
     };
 
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
 
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        const isAdmin = email.toLowerCase().includes('admin');
-        const userObj = {
+      const isAdmin = email.toLowerCase().includes('admin');
+
+      if (isAdmin) {
+        const adminUser = {
           email: email,
-          name: isAdmin ? 'Barangay Administrator' : (savedUser && savedUser.email === email ? savedUser.name : 'Juan Dela Cruz'),
-          isAdmin: isAdmin
+          name: 'Barangay Administrator',
+          isAdmin: true
+        };
+        localStorage.setItem('currentUser', JSON.stringify(adminUser));
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      const foundUser = registeredUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+
+      if (foundUser) {
+        const userObj = {
+          email: foundUser.email,
+          name: `${foundUser.firstName} ${foundUser.lastName}`,
+          phone: foundUser.phone,
+          address: foundUser.address,
+          isAdmin: false
         };
         localStorage.setItem('currentUser', JSON.stringify(userObj));
-
-        if (isAdmin) {
-          window.location.href = 'admin.html';
-        } else {
-          window.location.href = 'dashboard.html';
-        }
-      } catch (error) {
-        alert('Login failed: ' + error.message);
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('Invalid email or password. If you haven\'t registered yet, please create an account.');
       }
     });
   </script>
