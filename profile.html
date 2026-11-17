@@ -71,7 +71,6 @@
     main aside nav a:hover { translate: 4px 0; }
     main aside nav a svg { transition: translate .25s ease, scale .25s ease; }
     main aside nav a:hover svg { scale: 1.12; }
-    main aside nav a[href="profile.html"] { box-shadow: inset 3px 0 0 #16a34a; }
 
     /* Inputs */
     main section input { transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease; }
@@ -164,23 +163,13 @@
   </header>
 
   <main class="flex-1 w-full flex flex-col lg:flex-row">
-    <!-- Navigation: stacked card on mobile, full-height left-edge sidebar on desktop (lg+) -->
-    <aside class="hidden lg:block px-4 sm:px-6 pt-6 lg:p-0 lg:w-80 lg:shrink-0 lg:bg-white lg:border-r lg:border-slate-200 lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
-      <div class="bg-white rounded-xl p-6 border border-slate-200/80 shadow-sm lg:rounded-none lg:border-0 lg:shadow-none lg:p-8">
-        <h3 class="text-sm lg:text-base font-bold text-slate-400 uppercase tracking-wider mb-4 lg:mb-6">Navigation</h3>
-        <nav class="space-y-2 lg:space-y-3">
-          <a href="dashboard.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition">
-            <i data-lucide="rss" class="w-5 h-5 lg:w-6 lg:h-6"></i>
-            <span>Community Feed</span>
-          </a>
-          <a href="my-reports.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition">
-            <i data-lucide="file-text" class="w-5 h-5 lg:w-6 lg:h-6"></i>
-            <span>My Reports</span>
-          </a>
-          <a href="profile.html" class="w-full flex items-center space-x-3 px-4 py-3.5 lg:px-5 lg:py-4 text-sm lg:text-base font-bold rounded-xl bg-caps-50 text-caps-700 border border-caps-100">
-            <i data-lucide="user" class="w-5 h-5 lg:w-6 lg:h-6"></i>
-            <span>Profile Settings</span>
-          </a>
+    <aside class="hidden lg:block lg:w-80 lg:shrink-0 lg:sticky lg:top-16 lg:self-start lg:p-4">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">Navigation</h3>
+        <nav class="space-y-2">
+          <a href="dashboard.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="rss" class="w-5 h-5"></i><span>Community Feed</span></a>
+          <a href="my-reports.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="file-text" class="w-5 h-5"></i><span>My Reports</span></a>
+          <a href="profile.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-bold bg-caps-100 text-caps-700 nav-active"><i data-lucide="user" class="w-5 h-5"></i><span>Profile Settings</span></a>
         </nav>
       </div>
     </aside>
