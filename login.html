@@ -29,7 +29,6 @@
         }
 
         /* HEADER */
-
         .top-header {
             height: 82px;
             width: 100%;
@@ -50,7 +49,6 @@
         }
 
         /* MAIN BACKGROUND */
-
         .main-area {
             position: relative;
             min-height: calc(100vh - 150px);
@@ -59,7 +57,6 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-
             background:
                 radial-gradient(ellipse at 0% 0%, #bce9d5 0%, transparent 30%),
                 radial-gradient(ellipse at 100% 85%, #c8eadb 0%, transparent 30%),
@@ -92,7 +89,6 @@
         }
 
         /* LOGIN CARD */
-
         .login-card {
             position: relative;
             z-index: 2;
@@ -109,15 +105,12 @@
         }
 
         /* LEFT PANEL */
-
         .left-panel {
             position: relative;
             overflow: hidden;
-
             background:
                 radial-gradient(circle at 90% 20%, #08783e 0%, transparent 40%),
                 linear-gradient(145deg, #00603a, #003e28 75%);
-
             color: white;
             display: flex;
             flex-direction: column;
@@ -193,7 +186,6 @@
         }
 
         /* RIGHT PANEL */
-
         .right-panel {
             padding: 38px 48px 25px;
             display: flex;
@@ -222,8 +214,7 @@
             margin: 0;
         }
 
-        /* NOTIFICATION - MATCHING YOUR SCREENSHOT */
-
+        /* NOTIFICATION */
         .message {
             display: none;
             width: 100%;
@@ -250,7 +241,6 @@
         }
 
         /* FORM */
-
         .login-form {
             display: flex;
             flex-direction: column;
@@ -298,7 +288,6 @@
         }
 
         /* REMEMBER ME */
-
         .remember-row {
             display: flex;
             align-items: center;
@@ -317,7 +306,6 @@
         }
 
         /* LOGIN BUTTON */
-
         .login-btn {
             width: 100%;
             height: 44px;
@@ -328,11 +316,9 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             box-shadow: 0 4px 10px rgba(0,70,40,.18);
             transition: .3s;
         }
@@ -349,7 +335,6 @@
         }
 
         /* SIGN UP */
-
         .signup-bottom {
             display: flex;
             justify-content: center;
@@ -371,7 +356,6 @@
         }
 
         /* SECURITY NOTE */
-
         .security-note {
             display: flex;
             align-items: center;
@@ -382,16 +366,13 @@
         }
 
         /* FOOTER */
-
         .bottom-footer {
             min-height: 68px;
             background: linear-gradient(90deg, #004b2d, #005735);
             color: white;
-
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             padding: 12px 4%;
             gap: 15px;
         }
@@ -407,9 +388,7 @@
         }
 
         /* RESPONSIVE TABLET */
-
         @media (max-width: 900px) {
-
             .main-area {
                 padding: 30px 15px;
             }
@@ -443,9 +422,7 @@
         }
 
         /* RESPONSIVE MOBILE */
-
         @media (max-width: 600px) {
-
             .top-header {
                 height: 65px;
                 padding: 0 20px;
@@ -490,32 +467,24 @@
                 padding: 18px 10px;
             }
         }
-
     </style>
 </head>
 
 <body>
 
     <!-- HEADER -->
-
     <header class="top-header">
-
         <div class="brand">
             <h1>CAPS</h1>
         </div>
-
     </header>
 
     <!-- MAIN AREA -->
-
     <main class="main-area">
-
         <div class="login-card">
 
             <!-- LEFT PANEL -->
-
             <section class="left-panel">
-
                 <div class="left-content">
 
                     <div class="portal-name">
@@ -536,38 +505,30 @@
                     </p>
 
                 </div>
-
             </section>
 
             <!-- RIGHT PANEL -->
-
             <section class="right-panel">
 
                 <div class="form-heading">
-
                     <h2>Welcome back.</h2>
 
                     <p>
                         Sign in to your resident account.
                         Enter your email and password to continue.
                     </p>
-
                 </div>
 
                 <!-- NOTIFICATION -->
-
                 <div id="messageBox" class="message"></div>
 
                 <!-- LOGIN FORM -->
-
                 <form id="loginForm" class="login-form">
 
                     <div class="form-group">
-
                         <label for="email">Email address</label>
 
                         <div class="input-wrapper">
-
                             <input
                                 type="email"
                                 id="email"
@@ -576,17 +537,13 @@
                                 placeholder="Enter your email"
                                 autocomplete="email"
                             >
-
                         </div>
-
                     </div>
 
                     <div class="form-group">
-
                         <label for="password">Password</label>
 
                         <div class="input-wrapper">
-
                             <input
                                 type="password"
                                 id="password"
@@ -595,15 +552,11 @@
                                 placeholder="Enter your password"
                                 autocomplete="current-password"
                             >
-
                         </div>
-
                     </div>
 
                     <!-- REMEMBER ME -->
-
                     <div class="remember-row">
-
                         <input
                             type="checkbox"
                             id="rememberMe"
@@ -612,11 +565,9 @@
                         <label for="rememberMe">
                             Remember me
                         </label>
-
                     </div>
 
                     <!-- LOGIN BUTTON -->
-
                     <button
                         type="submit"
                         class="login-btn"
@@ -628,36 +579,26 @@
                 </form>
 
                 <!-- CREATE ACCOUNT LINK -->
-
                 <div class="signup-bottom">
-
                     <span>Don't have an account?</span>
-
                     <a href="register.html">Create an account</a>
-
                 </div>
 
                 <!-- SECURITY NOTE -->
-
                 <div class="security-note">
                     Your information is safe with us.
                 </div>
 
             </section>
-
         </div>
-
     </main>
 
     <!-- FOOTER -->
-
     <footer class="bottom-footer">
 
         <div class="footer-community">
-
             <strong>One neighborhood. Many connections.</strong><br>
             Built around the people who call it home.
-
         </div>
 
         <div class="footer-copy">
@@ -667,50 +608,48 @@
     </footer>
 
     <!-- LOGIN FUNCTIONALITY -->
-
     <script>
-
         const loginForm = document.getElementById("loginForm");
         const messageBox = document.getElementById("messageBox");
         const loginButton = document.getElementById("loginButton");
 
         // SHOW NOTIFICATION
-
         function showMessage(message, type) {
-
             messageBox.textContent = message;
             messageBox.className = "message " + type;
-
         }
 
         // CHECK IF USER JUST REGISTERED
-
         const urlParams = new URLSearchParams(window.location.search);
 
         if (urlParams.get("registered") === "true") {
-
             showMessage(
                 "Account created successfully! You can now sign in.",
                 "success"
             );
+        }
 
+        // SHOW LOGIN ERROR AFTER AUTOMATIC REFRESH
+        // Remove the flag immediately to prevent an endless refresh.
+        if (sessionStorage.getItem("loginError") === "true") {
+            sessionStorage.removeItem("loginError");
+
+            showMessage(
+                "Invalid email or password. Please check your login details.",
+                "error"
+            );
         }
 
         // REMEMBER EMAIL
-
         const savedEmail = localStorage.getItem("rememberedEmail");
 
         if (savedEmail) {
-
             document.getElementById("email").value = savedEmail;
             document.getElementById("rememberMe").checked = true;
-
         }
 
         // LOGIN PROCESS
-
         loginForm.addEventListener("submit", function(event) {
-
             event.preventDefault();
 
             const email = document
@@ -728,16 +667,12 @@
                 .checked;
 
             // VALIDATE INPUTS
-
             if (!email || !password) {
-
                 showMessage(
                     "Please enter your email and password.",
                     "error"
                 );
-
                 return;
-
             }
 
             loginButton.disabled = true;
@@ -745,54 +680,50 @@
 
             try {
 
-                // GET REGISTERED ACCOUNTS FROM REGISTER.HTML
-
+                // GET REGISTERED ACCOUNTS FROM LOCAL STORAGE
                 const residents = JSON.parse(
                     localStorage.getItem("residents") || "[]"
                 );
 
                 // FIND MATCHING EMAIL AND PASSWORD
-
                 const foundUser = residents.find(user =>
-
                     user.email &&
                     user.email.trim().toLowerCase() === email &&
                     user.password === password
-
                 );
 
                 // CHECK ACCOUNT
-
                 if (!foundUser) {
+
+                    // SAVE ERROR STATE BEFORE REFRESHING
+                    sessionStorage.setItem("loginError", "true");
 
                     showMessage(
                         "Invalid email or password. Please check your login details.",
                         "error"
                     );
 
-                    loginButton.disabled = false;
-                    loginButton.textContent = "Sign in to your account";
+                    loginButton.disabled = true;
+                    loginButton.textContent = "Refreshing...";
+
+                    // REFRESH AFTER 1.5 SECONDS
+                    // This happens on every incorrect login attempt.
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
 
                     return;
-
                 }
 
                 // REMEMBER EMAIL IF CHECKED
-
                 if (rememberMe) {
-
                     localStorage.setItem("rememberedEmail", email);
-
                 } else {
-
                     localStorage.removeItem("rememberedEmail");
-
                 }
 
                 // CREATE USER INFORMATION
-
                 const userObj = {
-
                     id: foundUser.id || "",
                     uid: foundUser.id || "",
 
@@ -819,36 +750,29 @@
                     role: foundUser.role || "resident",
 
                     isAdmin: false
-
                 };
 
                 // SAVE CURRENT USER SESSION
-
                 localStorage.setItem(
                     "currentUser",
                     JSON.stringify(userObj)
                 );
 
                 // KEEP COMPATIBILITY WITH OTHER PAGES
-
                 localStorage.setItem(
                     "loggedInUser",
                     JSON.stringify(userObj)
                 );
 
                 // SUCCESS NOTIFICATION
-
                 showMessage(
                     "Login successful! Redirecting to your dashboard...",
                     "success"
                 );
 
                 // REDIRECT TO DASHBOARD
-
                 setTimeout(function() {
-
                     window.location.href = "dashboard.html";
-
                 }, 800);
 
             } catch (error) {
@@ -862,11 +786,9 @@
 
                 loginButton.disabled = false;
                 loginButton.textContent = "Sign in to your account";
-
             }
 
         });
-
     </script>
 
 </body>
