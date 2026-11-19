@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -894,17 +893,12 @@
 
   </footer>
 
-  <!-- LOCAL STORAGE REGISTRATION SCRIPT -->
-
+  <!-- ICONS + PASSWORD TOGGLE -->
   <script>
-
-    // Initialize icons
     lucide.createIcons();
 
-    // Show / hide password
     window.togglePassword = function(inputId, button) {
       const input = document.getElementById(inputId);
-
       if (input.type === 'password') {
         input.type = 'text';
         button.innerHTML = '<i data-lucide="eye-off"></i>';
@@ -912,12 +906,19 @@
         input.type = 'password';
         button.innerHTML = '<i data-lucide="eye"></i>';
       }
-
       lucide.createIcons();
     };
+  </script>
 
-    // Register a resident using browser Local Storage
-    document.getElementById('register-form').addEventListener('submit', function(e) {
+  <!-- FIREBASE REGISTRATION SCRIPT -->
+  <script type="module">
+    import { auth, db, ADMIN_EMAIL, friendlyAuthError } from "./firebase-config.js";
+    import {
+      createUserWithEmailAndPassword, updateProfile, signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const fname = document.getElementById('reg-firstname').value.trim();
@@ -929,82 +930,45 @@
       const confirmPassword = document.getElementById('reg-confirm-pass').value;
       const agree = document.getElementById('reg-terms').checked;
 
-      if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-      }
-
-      if (password.length < 6) {
-        alert('Password must be at least 6 characters.');
-        return;
-      }
-
-      if (!agree) {
-        alert('Please agree to the Terms of use and Privacy policy.');
-        return;
-      }
+      if (password !== confirmPassword) { alert('Passwords do not match!'); return; }
+      if (password.length < 6) { alert('Password must be at least 6 characters.'); return; }
+      if (!agree) { alert('Please agree to the Terms of use and Privacy policy.'); return; }
 
       const createBtn = document.getElementById('create-btn');
       createBtn.disabled = true;
       createBtn.querySelector('span').textContent = 'Creating account...';
 
       try {
+        // 1. Create the account in Firebase Authentication (password is stored securely by Firebase)
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const fullName = `${fname} ${lname}`;
+        await updateProfile(cred.user, { displayName: fullName });
 
-        // Get existing resident accounts, or start with an empty array.
-        const residents = JSON.parse(localStorage.getItem('residents') || '[]');
-
-        // Prevent duplicate email registration.
-        const emailExists = residents.some(
-          resident => resident.email.toLowerCase() === email
-        );
-
-        if (emailExists) {
-          alert('This email is already registered.');
-          return;
-        }
-
-        const newResident = {
-          id: 'resident_' + Date.now(),
+        // 2. Save the profile in Firestore (no password is ever saved here)
+        const isAdmin = email === ADMIN_EMAIL.toLowerCase();
+        await setDoc(doc(db, 'users', cred.user.uid), {
+          uid: cred.user.uid,
           firstName: fname,
           lastName: lname,
-          fullName: `${fname} ${lname}`,
+          fullName: fullName,
           email: email,
           mobile: mobile,
           address: address,
-          password: password,
-          role: 'resident',
-          createdAt: new Date().toISOString()
-        };
+          role: isAdmin ? 'admin' : 'resident',
+          createdAt: serverTimestamp()
+        });
 
-        residents.push(newResident);
-        localStorage.setItem('residents', JSON.stringify(residents));
-
-        // Keep this key for pages that use the most recently registered account.
-        localStorage.setItem('registeredUser', JSON.stringify({
-          id: newResident.id,
-          uid: newResident.id,
-          name: newResident.fullName,
-          email: newResident.email,
-          role: newResident.role
-        }));
-
-        // No success notification. Redirect directly to login page.
+        // 3. Sign out so the person logs in from the login page, like before
+        await signOut(auth);
         window.location.href = 'login.html?registered=true';
 
       } catch (error) {
-
         console.error('Registration Error:', error);
-        alert('Registration failed. Your browser may have Local Storage disabled or full.');
-
-      } finally {
-
+        alert(friendlyAuthError(error.code));
         createBtn.disabled = false;
         createBtn.querySelector('span').textContent = 'Create account';
-
       }
-
     });
-
   </script>
 
 </body>

@@ -229,8 +229,8 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-            <input type="email" id="prof-email" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span class="font-normal text-slate-400">(cannot be changed)</span></label>
+            <input type="email" id="prof-email" readonly title="Email cannot be changed" class="w-full px-3 py-2 bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition" required>
           </div>
 
           <div>
@@ -319,106 +319,63 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { esc, initialsOf, setAvatar, requireUser, logout } from "./caps-common.js";
+    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import {
+      updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
     lucide.createIcons();
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Juan Dela Cruz', email: 'juan@example.com', address: '', phone: '' };
+    const { user, profile } = await requireUser();
 
-    // Registered accounts (the same list login.html checks)
-    const USERS_KEY = 'caps_registered_users';
-    function getUsers() {
-      try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch (err) { return []; }
+    // Fill missing first / middle / last from the saved full name
+    const p = { ...profile };
+    if (p.firstName === undefined) {
+      const parts = (p.fullName || user.displayName || '').trim().split(/\s+/).filter(Boolean);
+      p.firstName = parts[0] || '';
+      p.lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+      p.middleName = parts.length > 2 ? parts.slice(1, -1).join(' ') : '';
     }
-    function findUserIndex(users, email) {
-      return users.findIndex(u => (u.email || '').toLowerCase() === (email || '').toLowerCase());
-    }
-    // Saves changes to the registered account so they survive logout / login
-    function syncRegisteredUser(oldEmail, changes) {
-      const users = getUsers();
-      const i = findUserIndex(users, oldEmail);
-      if (i === -1) return false;
-      users[i] = Object.assign({}, users[i], changes);
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-      return true;
-    }
-
-    // Fill in missing details from the registered account
-    (function loadFromAccount() {
-      const users = getUsers();
-      const i = findUserIndex(users, currentUser.email);
-      if (i === -1) return;
-      const acc = users[i];
-      if (currentUser.firstName === undefined && acc.firstName !== undefined) {
-        currentUser.firstName = acc.firstName;
-        currentUser.middleName = acc.middleName || '';
-        currentUser.lastName = acc.lastName || '';
-      }
-      if (currentUser.picture === undefined && acc.picture) currentUser.picture = acc.picture;
-      if (!currentUser.address && acc.address) currentUser.address = acc.address;
-      if (!currentUser.phone && acc.phone) currentUser.phone = acc.phone;
-    })();
-
-    // Split an existing single "name" into first / middle / last if the new fields don't exist yet
-    if (currentUser.firstName === undefined) {
-      const parts = (currentUser.name || '').trim().split(/\s+/).filter(Boolean);
-      currentUser.firstName = parts[0] || '';
-      currentUser.lastName = parts.length > 1 ? parts[parts.length - 1] : '';
-      currentUser.middleName = parts.length > 2 ? parts.slice(1, -1).join(' ') : '';
-    }
-    currentUser.name = [currentUser.firstName, currentUser.middleName, currentUser.lastName].filter(Boolean).join(' ');
-
-    let pendingPicture = currentUser.picture || '';
-
-    function initials(name) {
-      return name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase();
-    }
+    const fullNameOf = () => [p.firstName, p.middleName, p.lastName].filter(Boolean).join(' ');
+    let pendingPicture = p.picture || '';
 
     function renderAvatar(el, picture, name) {
-      if (picture) {
-        el.innerHTML = '<img src="' + picture + '" alt="Profile picture" class="w-full h-full object-cover">';
-      } else {
-        el.textContent = initials(name);
-      }
+      if (picture) el.innerHTML = '<img src="' + esc(picture) + '" alt="Profile picture" class="w-full h-full object-cover">';
+      else el.textContent = initialsOf(name);
     }
-
     function updatePictureUI() {
-      renderAvatar(document.getElementById('prof-pic-preview'), pendingPicture, currentUser.name);
+      renderAvatar(document.getElementById('prof-pic-preview'), pendingPicture, fullNameOf());
       document.getElementById('pic-remove').classList.toggle('hidden', !pendingPicture);
       document.getElementById('pic-remove').classList.toggle('flex', !!pendingPicture);
     }
 
-    document.getElementById('user-display-name').innerText = currentUser.name;
-    renderAvatar(document.getElementById('user-avatar'), currentUser.picture, currentUser.name);
-
-    document.getElementById('prof-first-name').value = currentUser.firstName || '';
-    document.getElementById('prof-middle-name').value = currentUser.middleName || '';
-    document.getElementById('prof-last-name').value = currentUser.lastName || '';
-    document.getElementById('prof-email').value = currentUser.email || '';
-    document.getElementById('prof-address').value = currentUser.address || '';
-    document.getElementById('prof-phone').value = currentUser.phone || '';
+    document.getElementById('user-display-name').innerText = fullNameOf();
+    renderAvatar(document.getElementById('user-avatar'), p.picture, fullNameOf());
+    document.getElementById('prof-first-name').value = p.firstName || '';
+    document.getElementById('prof-middle-name').value = p.middleName || '';
+    document.getElementById('prof-last-name').value = p.lastName || '';
+    document.getElementById('prof-email').value = user.email || '';
+    document.getElementById('prof-address').value = p.address || '';
+    document.getElementById('prof-phone').value = p.mobile || '';
     updatePictureUI();
 
-    // Resize the chosen photo so it fits in localStorage
+    // ----- Profile picture (saved right away to Firestore) -----
     function handlePicture(e) {
       const file = e.target.files[0];
       if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        alert('Please choose an image file.');
-        return;
-      }
+      if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
       const reader = new FileReader();
       reader.onload = function (ev) {
         const img = new Image();
         img.onload = function () {
           const size = 256;
           const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
+          canvas.width = size; canvas.height = size;
           const side = Math.min(img.width, img.height);
-          const sx = (img.width - side) / 2;
-          const sy = (img.height - side) / 2;
-          ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+          canvas.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
           pendingPicture = canvas.toDataURL('image/jpeg', 0.85);
           updatePictureUI();
           savePictureNow();
@@ -428,112 +385,78 @@
       reader.readAsDataURL(file);
       e.target.value = '';
     }
-
-    function removePicture() {
-      pendingPicture = '';
-      updatePictureUI();
-      savePictureNow();
-    }
-
-    // Saves the picture right away (to the session and the registered account)
-    function savePictureNow() {
+    function removePicture() { pendingPicture = ''; updatePictureUI(); savePictureNow(); }
+    async function savePictureNow() {
       try {
-        currentUser.picture = pendingPicture;
-        delete currentUser.password;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        syncRegisteredUser(currentUser.email, { picture: pendingPicture });
-        renderAvatar(document.getElementById('user-avatar'), pendingPicture, currentUser.name);
+        await updateDoc(doc(db, 'users', user.uid), { picture: pendingPicture });
+        p.picture = pendingPicture;
+        renderAvatar(document.getElementById('user-avatar'), pendingPicture, fullNameOf());
       } catch (err) {
-        alert('Could not save the picture because browser storage is full. Try a smaller photo or clear some saved data.');
+        console.error(err);
+        alert('Could not save the picture (' + (err.code || err.message) + ').');
       }
     }
 
-    function saveProfile(e) {
+    // ----- Save profile details -----
+    async function saveProfile(e) {
       e.preventDefault();
-      const oldEmail = currentUser.email;
-      currentUser.firstName = document.getElementById('prof-first-name').value.trim();
-      currentUser.middleName = document.getElementById('prof-middle-name').value.trim();
-      currentUser.lastName = document.getElementById('prof-last-name').value.trim();
-      currentUser.name = [currentUser.firstName, currentUser.middleName, currentUser.lastName].filter(Boolean).join(' ');
-      currentUser.email = document.getElementById('prof-email').value;
-      currentUser.address = document.getElementById('prof-address').value;
-      currentUser.phone = document.getElementById('prof-phone').value;
-      currentUser.picture = pendingPicture;
-
-      delete currentUser.password; // password lives only in the registered account
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      syncRegisteredUser(oldEmail, {
-        firstName: currentUser.firstName,
-        middleName: currentUser.middleName,
-        lastName: currentUser.lastName,
-        email: currentUser.email,
-        address: currentUser.address,
-        phone: currentUser.phone,
-        picture: currentUser.picture
-      });
-      alert('Profile updated successfully!');
-      window.location.reload();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      p.firstName = document.getElementById('prof-first-name').value.trim();
+      p.middleName = document.getElementById('prof-middle-name').value.trim();
+      p.lastName = document.getElementById('prof-last-name').value.trim();
+      p.address = document.getElementById('prof-address').value.trim();
+      p.mobile = document.getElementById('prof-phone').value.trim();
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          firstName: p.firstName, middleName: p.middleName, lastName: p.lastName,
+          fullName: fullNameOf(), address: p.address, mobile: p.mobile, picture: pendingPicture
+        });
+        await updateProfile(auth.currentUser, { displayName: fullNameOf() });
+        alert('Profile updated successfully!');
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert('Could not save your profile (' + (err.code || err.message) + ').');
+        btn.disabled = false;
+      }
     }
 
-    function openLogoutModal() {
-      const m = document.getElementById('logout-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-
-    function closeLogoutModal() {
-      const m = document.getElementById('logout-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-    }
-
-    function confirmLogout() {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-    }
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeLogoutModal();
-    });
-    document.getElementById('logout-modal').addEventListener('click', function (e) {
-      if (e.target === this) closeLogoutModal();
-    });
-
+    // ----- Change password (re-checks the current password with Firebase) -----
     function showPwMessage(text, ok) {
       const el = document.getElementById('pw-message');
       el.textContent = text;
       el.className = 'text-xs font-medium ' + (ok ? 'text-caps-700' : 'text-red-600');
     }
-
-    function changePassword(e) {
+    async function changePassword(e) {
       e.preventDefault();
       const current = document.getElementById('pw-current').value;
       const next = document.getElementById('pw-new').value;
-
-      const users = getUsers();
-      const idx = findUserIndex(users, currentUser.email);
-      if (idx === -1) {
-        showPwMessage('Account not found. Please log in again with your registered account.', false);
-        return;
-      }
-      if (users[idx].password !== current) {
-        showPwMessage('Current password is incorrect.', false);
-        return;
-      }
-      if (next.length < 8) {
-        showPwMessage('New password must be at least 8 characters.', false);
-        return;
-      }
-      if (next === current) {
-        showPwMessage('New password must be different from your current password.', false);
-        return;
-      }
-
-      syncRegisteredUser(currentUser.email, { password: next });
-      document.getElementById('pw-current').value = '';
-      document.getElementById('pw-new').value = '';
-      showPwMessage('Password updated successfully.', true);
+      if (next.length < 8) return showPwMessage('New password must be at least 8 characters.', false);
+      if (next === current) return showPwMessage('New password must be different from your current password.', false);
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      try {
+        await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(user.email, current));
+        await updatePassword(auth.currentUser, next);
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value = '';
+        showPwMessage('Password updated successfully.', true);
+      } catch (err) {
+        const bad = ['auth/wrong-password', 'auth/invalid-credential', 'auth/invalid-login-credentials'];
+        showPwMessage(bad.includes(err.code) ? 'Current password is incorrect.'
+          : err.code === 'auth/too-many-requests' ? 'Too many attempts. Please wait a moment and try again.'
+          : 'Could not update password (' + (err.code || err.message) + ').', false);
+      } finally { btn.disabled = false; }
     }
+
+    function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function confirmLogout() { logout(); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogoutModal(); });
+    document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
+
+    Object.assign(window, { handlePicture, removePicture, saveProfile, changePassword, openLogoutModal, closeLogoutModal, confirmLogout });
   </script>
 </body>
 </html>

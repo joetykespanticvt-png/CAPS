@@ -29,10 +29,25 @@
           </div>
         </div>
 
-        <button onclick="logout()" class="text-xs bg-emerald-900/60 hover:bg-emerald-900 border border-emerald-700 px-3.5 py-2 rounded-xl flex items-center space-x-1.5">
+        <div class="flex items-center space-x-2">
+          <div class="relative">
+            <button id="bell-btn" type="button" title="Notifications" class="relative p-2 rounded-xl text-emerald-100 hover:text-white hover:bg-white/10">
+              <i data-lucide="bell" class="w-5 h-5"></i>
+              <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+            </button>
+            <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 max-w-[90vw] bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+              <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+                <h4 class="text-xs font-bold text-slate-700">Notifications</h4>
+                <button id="mark-all-read" type="button" class="text-[11px] font-semibold text-emerald-700 hover:underline">Mark all as read</button>
+              </div>
+              <ul id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></ul>
+            </div>
+          </div>
+          <button id="logout-btn" class="text-xs bg-emerald-900/60 hover:bg-emerald-900 border border-emerald-700 px-3.5 py-2 rounded-xl flex items-center space-x-1.5">
           <i data-lucide="log-out" class="w-4 h-4 text-emerald-200"></i>
           <span>Admin Logout</span>
         </button>
+        </div>
       </div>
     </div>
   </header>
@@ -52,7 +67,7 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Resident Submissions & Action Panel</h2>
-          <p class="text-xs text-slate-500">Update report progress stages or delete entries.</p>
+          <p class="text-xs text-slate-500">Update report progress, moderate comments, or delete entries.</p>
         </div>
       </div>
 
@@ -60,94 +75,204 @@
     </section>
   </main>
 
-  <script>
-    lucide.createIcons();
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import {
+      esc, fmtDate, fmtDateTime, ms, docData, statusSteps, statusStyle,
+      requireUser, logout, notify, listenNotifications, markNotifRead, markAllNotifsRead,
+      notifListHTML, toast, mediaHTML, hydrateMedia, deleteReportMedia
+    } from "./caps-common.js";
+    import {
+      collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    const statusSteps = ['Pending', 'Under Review', 'In Progress', 'Resolved'];
+    await requireUser({ admin: true });   // non-admins are sent away
+
+    const container = document.getElementById('admin-reports-list');
+    let reports = [];
+    let commentsBy = {};
+    let notifs = [];
+    const openComments = new Set();
+
+    // ---------- Notifications (new reports appear here) ----------
+    function renderNotifs() {
+      const unread = notifs.filter(n => !n.read).length;
+      const badge = document.getElementById('bell-badge');
+      badge.innerText = unread > 9 ? '9+' : unread;
+      badge.classList.toggle('hidden', unread === 0);
+      document.getElementById('notif-list').innerHTML = notifListHTML(notifs);
+      lucide.createIcons();
+    }
+    listenNotifications('admin', (items) => { notifs = items; renderNotifs(); }, (n) => toast(n.text));
+
+    document.getElementById('bell-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('notif-panel').classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+      const p = document.getElementById('notif-panel');
+      if (!p.contains(e.target)) p.classList.add('hidden');
+    });
+    document.getElementById('mark-all-read').addEventListener('click', () => markAllNotifsRead(notifs).catch(console.error));
+
+    window.openNotif = (id) => {
+      const n = notifs.find(x => x.id === id);
+      if (!n) return;
+      if (!n.read) markNotifRead(id).catch(console.error);
+      document.getElementById('notif-panel').classList.add('hidden');
+      if (n.type === 'comment') openComments.add(n.reportId);
+      renderAdminReports();
+      const el = document.getElementById('rep-' + n.reportId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-emerald-500');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-emerald-500'), 2000);
+      }
+    };
+
+    // ---------- Reports + comments (live) ----------
+    onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
+      reports = snap.docs.map(docData);
+      renderAdminReports();
+    }, (err) => {
+      console.error(err);
+      container.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 text-sm">Could not load reports (${esc(err.code || err.message)}). Make sure the latest Firestore rules are published.</div>`;
+    });
+    onSnapshot(collection(db, 'comments'), (snap) => {
+      commentsBy = {};
+      snap.docs.map(docData).forEach(c => { (commentsBy[c.reportId] = commentsBy[c.reportId] || []).push(c); });
+      Object.values(commentsBy).forEach(l => l.sort((a, b) => ms(a.createdAt) - ms(b.createdAt)));
+      renderAdminReports();
+    }, (err) => console.error('comments listener', err));
 
     function renderAdminReports() {
-      const reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      const container = document.getElementById('admin-reports-list');
       document.getElementById('total-reports-count').innerText = reports.length;
 
       if (reports.length === 0) {
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center space-y-2">
             <p class="font-bold text-slate-700 text-sm">No resident reports found</p>
-          </div>
-        `;
+          </div>`;
         return;
       }
 
-      container.innerHTML = '';
-      reports.forEach((rep, index) => {
+      container.innerHTML = reports.map(rep => {
         const currentStatus = rep.status || 'Pending';
-
-        const card = document.createElement('div');
-        card.className = "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4";
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[10px] font-bold text-caps-primary bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase inline-block">
-                ${rep.category}
-              </span>
-              <h3 class="font-bold text-slate-900 text-base mt-2">${rep.title}</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Submitted by: <strong>${rep.authorName || 'Resident'}</strong> • ${rep.purok} • ${rep.date || 'Just now'}</p>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold border bg-amber-50 text-amber-800 border-amber-200">
-              ${currentStatus}
-            </span>
-          </div>
-
-          <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">${rep.description}</p>
-
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-slate-700">Update Status:</span>
-              <select onchange="updateStatus(${rep.id}, this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 font-semibold cursor-pointer">
-                <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="Under Review" ${currentStatus === 'Under Review' ? 'selected' : ''}>Under Review</option>
-                <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                <option value="Resolved" ${currentStatus === 'Resolved' ? 'selected' : ''}>Resolved</option>
-              </select>
+        const comments = commentsBy[rep.id] || [];
+        const open = openComments.has(rep.id);
+        return `
+          <div id="rep-${esc(rep.id)}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 transition">
+            <div class="flex justify-between items-start gap-3">
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold text-caps-primary bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase inline-block">${esc(rep.category)}</span>
+                <h3 class="font-bold text-slate-900 text-base mt-2 break-words">${esc(rep.title)}</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Submitted by: <strong>${esc(rep.authorName || 'Resident')}</strong> • ${esc(rep.purok)} • ${esc(fmtDate(rep.createdAt))}</p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${statusStyle[currentStatus] || statusStyle.Pending}">${esc(currentStatus)}</span>
             </div>
 
-            <button onclick="deleteReport(${rep.id})" class="text-xs text-red-600 font-semibold flex items-center space-x-1 px-3 py-1.5 rounded-xl hover:bg-red-50">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-              <span>Delete Submission</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+            <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">${esc(rep.description)}</p>
+            ${mediaHTML(rep)}
+
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center space-x-2">
+                  <span class="text-xs font-bold text-slate-700">Update Status:</span>
+                  <select data-status="${esc(rep.id)}" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 font-semibold cursor-pointer">
+                    ${statusSteps.map(s => `<option value="${s}" ${currentStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+                  </select>
+                </div>
+                <span class="flex items-center gap-1.5 text-xs text-slate-500 font-medium"><i data-lucide="thumbs-up" class="w-4 h-4"></i>${(rep.upvoters || []).length}</span>
+                <button data-toggle-comments="${esc(rep.id)}" class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition ${open ? 'text-emerald-800 bg-emerald-50' : 'text-slate-500'}">
+                  <i data-lucide="message-circle" class="w-4 h-4"></i><span>Comments (${comments.length})</span>
+                </button>
+              </div>
+
+              <button data-delete="${esc(rep.id)}" class="text-xs text-red-600 font-semibold flex items-center space-x-1 px-3 py-1.5 rounded-xl hover:bg-red-50">
+                <i data-lucide="trash-2" class="w-4 h-4"></i><span>Delete Submission</span>
+              </button>
+            </div>
+
+            ${open ? `
+            <div class="pt-3 border-t border-slate-100 space-y-3">
+              ${comments.length ? comments.map(c => `
+                <div class="flex gap-2.5">
+                  <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[10px] flex items-center justify-center shrink-0">${esc(c.authorInitials)}</div>
+                  <div class="min-w-0 flex-1">
+                    <div class="bg-slate-50 border border-slate-200/70 rounded-2xl px-3 py-2">
+                      <span class="text-xs font-bold text-slate-900">${esc(c.authorName)}</span>
+                      <p class="text-xs text-slate-700 mt-0.5 break-words">${esc(c.text)}</p>
+                    </div>
+                    <div class="flex items-center gap-3 px-2 mt-0.5 text-[10px] text-slate-400">
+                      <span>${esc(fmtDateTime(c.createdAt))}</span>
+                      <button data-delete-comment="${esc(c.id)}" class="hover:text-red-600 font-semibold">Delete comment</button>
+                    </div>
+                  </div>
+                </div>`).join('') : '<p class="text-[11px] text-slate-400">No comments on this report.</p>'}
+            </div>` : ''}
+          </div>`;
+      }).join('');
 
       lucide.createIcons();
+      hydrateMedia();
     }
 
-    function updateStatus(id, newStatus) {
-      let reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      const report = reports.find(r => r.id === id);
-      if (report) {
-        report.status = newStatus;
-        localStorage.setItem('caps_reports', JSON.stringify(reports));
+    // ---------- Actions ----------
+    container.addEventListener('change', async (e) => {
+      const sel = e.target.closest('select[data-status]');
+      if (!sel) return;
+      const id = sel.dataset.status;
+      const rep = reports.find(r => r.id === id);
+      const newStatus = sel.value;
+      if (!rep || rep.status === newStatus) return;
+      try {
+        await updateDoc(doc(db, 'reports', id), { status: newStatus });
+        if (rep.authorId) {
+          notify({
+            toUid: rep.authorId, type: 'status', reportId: id,
+            text: `Your report "${rep.title}" is now "${newStatus}".`
+          }).catch(console.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Could not update status: ' + (err.code || err.message));
         renderAdminReports();
       }
-    }
+    });
 
-    function deleteReport(id) {
-      if (!confirm('Are you sure you want to delete this report?')) return;
-      let reports = JSON.parse(localStorage.getItem('caps_reports') || '[]');
-      reports = reports.filter(r => r.id !== id);
-      localStorage.setItem('caps_reports', JSON.stringify(reports));
-      renderAdminReports();
-    }
+    container.addEventListener('click', async (e) => {
+      const tg = e.target.closest('button[data-toggle-comments]');
+      if (tg) {
+        const id = tg.dataset.toggleComments;
+        openComments.has(id) ? openComments.delete(id) : openComments.add(id);
+        renderAdminReports();
+        return;
+      }
 
-    function logout() {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-    }
+      const dc = e.target.closest('button[data-delete-comment]');
+      if (dc) {
+        if (!confirm('Delete this comment?')) return;
+        try { await deleteDoc(doc(db, 'comments', dc.dataset.deleteComment)); }
+        catch (err) { console.error(err); alert('Could not delete comment: ' + (err.code || err.message)); }
+        return;
+      }
 
-    renderAdminReports();
+      const del = e.target.closest('button[data-delete]');
+      if (del) {
+        if (!confirm('Are you sure you want to delete this report?')) return;
+        const id = del.dataset.delete;
+        try {
+          const b = writeBatch(db);
+          (commentsBy[id] || []).forEach(c => b.delete(doc(db, 'comments', c.id)));
+          await b.commit();
+          await deleteReportMedia(id);
+          await deleteDoc(doc(db, 'reports', id));
+        } catch (err) { console.error(err); alert('Could not delete: ' + (err.code || err.message)); }
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    lucide.createIcons();
   </script>
 </body>
 </html>

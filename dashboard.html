@@ -205,12 +205,12 @@
           <textarea id="modal-desc" rows="3" required placeholder="Provide clear details to help barangay officials respond quickly..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Photos / Videos <span class="font-normal text-slate-400">(optional, up to 5)</span></label>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Photos <span class="font-normal text-slate-400">(optional, up to 5)</span></label>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="document.getElementById('media-library').click()" class="flex flex-col items-center justify-center gap-1 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-700 hover:bg-caps-50 hover:text-caps-700 transition"><i data-lucide="image" class="w-4 h-4"></i><span>Library</span></button>
             <button type="button" onclick="document.getElementById('media-photo').click()" class="flex flex-col items-center justify-center gap-1 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-700 hover:bg-caps-50 hover:text-caps-700 transition"><i data-lucide="camera" class="w-4 h-4"></i><span>Take Photo</span></button>
           </div>
-          <input type="file" id="media-library" accept="image/*,video/*" multiple class="hidden" onchange="addMediaFiles(this)">
+          <input type="file" id="media-library" accept="image/*" multiple class="hidden" onchange="addMediaFiles(this)">
           <input type="file" id="media-photo" accept="image/*" capture="environment" class="hidden" onchange="addMediaFiles(this)">
           <p id="media-msg" class="text-[11px] text-red-600 mt-1.5 hidden"></p>
           <div id="media-previews" class="grid grid-cols-3 gap-2 mt-2"></div>
@@ -236,22 +236,26 @@
     </div>
   </div>
 
-  <script>
-    // ---------- Helpers ----------
-    const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
-    const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const nowStamp = () => new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import {
+      esc, initialsOf, fmtDate, fmtDateTime, ms, docData, statusStyle, setAvatar,
+      requireUser, logout, notify, listenNotifications, markNotifRead, markAllNotifsRead,
+      notifListHTML, toast, compressImage, mediaHTML, hydrateMedia
+    } from "./caps-common.js";
+    import {
+      collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, deleteDoc, addDoc,
+      arrayUnion, arrayRemove, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // ---------- Current user ----------
-    let currentUser;
-    try { currentUser = JSON.parse(localStorage.getItem('currentUser')); } catch {}
-    currentUser = currentUser || { name: 'Juan Dela Cruz', email: 'juan@example.com' };
-    const me = currentUser.email || currentUser.name;         // unique id for this user
-    const initials = currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'JD';
-    document.getElementById('user-display-name').innerText = currentUser.name;
-    document.getElementById('user-avatar').innerText = initials;
-    document.getElementById('post-input-avatar').innerText = initials;
+    // ---------- Current user (Firebase) ----------
+    const { user, profile } = await requireUser();
+    const me = user.uid;
+    const myName = profile.fullName || user.displayName || 'Resident';
+    const initials = initialsOf(myName);
+    document.getElementById('user-display-name').innerText = myName;
+    setAvatar(document.getElementById('user-avatar'), profile.picture, initials);
+    setAvatar(document.getElementById('post-input-avatar'), profile.picture, initials);
 
     // ---------- Emergency hotlines (all contacts preserved) ----------
     const HOTLINES = [
@@ -298,44 +302,30 @@
     }
 
     // ---------- Notifications ----------
+    let notifs = [];
     function renderNotifs() {
-      const mine = read('caps_notifications').filter(n => n.to === me);
-      const unread = mine.filter(n => !n.read).length;
+      const unread = notifs.filter(n => !n.read).length;
       const badge = document.getElementById('bell-badge');
       badge.innerText = unread > 9 ? '9+' : unread;
       badge.classList.toggle('hidden', unread === 0);
-      document.getElementById('notif-list').innerHTML = mine.length ? mine.map(n => `
-        <li>
-          <button onclick="openNotif(${n.id})" class="w-full text-left px-4 py-3 flex gap-3 hover:bg-slate-50 transition ${n.read ? '' : 'bg-caps-50/60'}">
-            <span class="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-caps-100 text-caps-800 flex items-center justify-center"><i data-lucide="message-circle" class="w-4 h-4"></i></span>
-            <span class="min-w-0">
-              <span class="block text-xs text-slate-700 leading-snug">${esc(n.text)}</span>
-              <span class="block text-[10px] text-slate-400 mt-0.5">${esc(n.date)}</span>
-            </span>
-            ${n.read ? '' : '<span class="ml-auto mt-1 w-2 h-2 rounded-full bg-caps-600 shrink-0"></span>'}
-          </button>
-        </li>`).join('')
-        : '<li class="px-4 py-8 text-center text-xs text-slate-400">No notifications yet.</li>';
+      document.getElementById('notif-list').innerHTML = notifListHTML(notifs);
       lucide.createIcons();
     }
+    listenNotifications(me, (items) => { notifs = items; renderNotifs(); }, (n) => toast(n.text));
+
     function toggleNotifs(e) { e.stopPropagation(); const p = document.getElementById('notif-panel'); p.classList.toggle('hidden'); document.body.classList.toggle('overflow-hidden', !p.classList.contains('hidden') && window.innerWidth < 768); }
     function closeNotifs() { document.getElementById('notif-panel').classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
     document.addEventListener('click', (e) => {
       if (!document.getElementById('notif-panel').contains(e.target)) closeNotifs();
     });
-    function markAllRead() {
-      write('caps_notifications', read('caps_notifications').map(n => n.to === me ? { ...n, read: true } : n));
-      renderNotifs();
-    }
+    function markAllRead() { markAllNotifsRead(notifs).catch(console.error); }
     function openNotif(id) {
-      const all = read('caps_notifications');
-      const n = all.find(x => x.id === id);
+      const n = notifs.find(x => x.id === id);
       if (!n) return;
-      n.read = true; write('caps_notifications', all);
+      if (!n.read) markNotifRead(id).catch(console.error);
       closeNotifs();
-      openComments.add(n.reportId);
+      if (n.type === 'comment') openComments.add(n.reportId);
       loadReports();
-      renderNotifs();
       const el = document.getElementById('report-' + n.reportId);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -344,12 +334,29 @@
       }
     }
 
-    // ---------- Feed ----------
+    // ---------- Feed (live from Firestore) ----------
+    let reports = [];
+    let commentsBy = {};
     const openComments = new Set();
 
+    onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
+      reports = snap.docs.map(docData);
+      loadReports();
+    }, (err) => {
+      console.error(err);
+      document.getElementById('reports-feed').innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-xs">Could not load reports (${esc(err.code || err.message)}). Make sure the latest Firestore rules are published.</div>`;
+    });
+
+    onSnapshot(collection(db, 'comments'), (snap) => {
+      commentsBy = {};
+      snap.docs.map(docData).forEach(c => { (commentsBy[c.reportId] = commentsBy[c.reportId] || []).push(c); });
+      Object.values(commentsBy).forEach(list => list.sort((a, b) => ms(a.createdAt) - ms(b.createdAt)));
+      loadReports();
+    }, (err) => console.error('comments listener', err));
+
     function commentHTML(c, rep) {
-      const isOwner = (c.authorEmail || c.authorName) === (rep.authorEmail || rep.authorName);
-      const mineC = (c.authorEmail || c.authorName) === me;
+      const isOwner = c.authorId === rep.authorId;
+      const mineC = c.authorId === me;
       return `
         <div class="flex gap-2.5">
           <div class="w-7 h-7 rounded-full bg-caps-100 text-caps-800 border border-caps-200 font-bold text-[10px] flex items-center justify-center shrink-0">${esc(c.authorInitials)}</div>
@@ -362,85 +369,34 @@
               <p class="text-xs text-slate-700 mt-0.5 leading-relaxed break-words">${esc(c.text)}</p>
             </div>
             <div class="flex items-center gap-3 px-2 mt-0.5 text-[10px] text-slate-400">
-              <span>${esc(c.date)}</span>
-              ${mineC ? `<button onclick="deleteComment(${rep.id}, ${c.id})" class="hover:text-red-600 font-semibold">Delete</button>` : ''}
+              <span>${esc(fmtDateTime(c.createdAt))}</span>
+              ${mineC ? `<button onclick="deleteComment('${esc(c.id)}')" class="hover:text-red-600 font-semibold">Delete</button>` : ''}
             </div>
           </div>
         </div>`;
     }
 
-    // ---------- Report media (photos & videos, stored in IndexedDB) ----------
-    const CapsMedia = (() => {
-      let dbp;
-      const open = () => dbp || (dbp = new Promise((res, rej) => {
-        const r = indexedDB.open('caps_media_db', 1);
-        r.onupgradeneeded = () => r.result.createObjectStore('files');
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
-      }));
-      const tx = async (mode, fn) => {
-        const db = await open();
-        return new Promise((res, rej) => {
-          const t = db.transaction('files', mode);
-          const q = fn(t.objectStore('files'));
-          t.oncomplete = () => res(q && q.result);
-          t.onerror = t.onabort = () => rej(t.error);
-        });
-      };
-      return {
-        put: (id, blob) => tx('readwrite', s => s.put(blob, id)),
-        get: id => tx('readonly', s => s.get(id)),
-        del: id => tx('readwrite', s => s.delete(id))
-      };
-    })();
-    const mediaURLs = new Map();
-
-    function mediaHTML(rep) {
-      const m = rep.media || [];
-      if (!m.length) return '';
-      return `<div class="mt-3 grid gap-2 ${m.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}">` + m.map((x, i) =>
-        `<div class="media-cell rounded-xl overflow-hidden bg-slate-100 border border-slate-200 ${m.length > 2 && i === 0 ? 'col-span-2' : ''}">` +
-        (x.type === 'video'
-          ? `<video data-media-id="${x.id}" controls playsinline preload="metadata" class="w-full max-h-96 bg-black"></video>`
-          : `<img data-media-id="${x.id}" alt="Report photo" onclick="openLightbox(this.src)" class="w-full max-h-96 object-cover cursor-zoom-in">`) +
-        '</div>').join('') + '</div>';
-    }
-
-    async function hydrateMedia() {
-      for (const el of document.querySelectorAll('[data-media-id]:not([data-ready])')) {
-        el.dataset.ready = '1';
-        const id = el.dataset.mediaId;
-        let url = mediaURLs.get(id);
-        if (!url) {
-          try { const b = await CapsMedia.get(id); if (b) { url = URL.createObjectURL(b); mediaURLs.set(id, url); } } catch {}
-        }
-        if (url) el.src = url; else el.closest('.media-cell')?.remove();
-      }
-    }
-
-    function openLightbox(src) {
-      if (!src) return;
-      const d = document.createElement('div');
-      d.className = 'fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4';
-      d.innerHTML = `<img src="${src}" class="max-w-full max-h-full object-contain">`;
-      d.onclick = () => d.remove();
-      document.body.appendChild(d);
-    }
-
     function loadReports() {
-      const reports = read('caps_reports');
       const feed = document.getElementById('reports-feed');
+
+      // keep half-typed comments & focus when live data refreshes the feed
+      const drafts = {};
+      document.querySelectorAll('[id^="cm-"] input[name="c"]').forEach(i => { if (i.value) drafts[i.closest('[id^="cm-"]').id] = i.value; });
+      const act = document.activeElement;
+      const focusCm = act && act.name === 'c' ? act.closest('[id^="cm-"]')?.id : null;
 
       document.getElementById('active-concerns-count').innerText = reports.filter(r => r.status !== 'Resolved').length;
       document.getElementById('resolved-concerns-count').innerText = reports.filter(r => r.status === 'Resolved').length;
       document.getElementById('empty-state').classList.toggle('hidden', reports.length > 0);
 
       feed.innerHTML = reports.map(rep => {
-        const comments = rep.comments || [];
-        const voted = (rep.upvoters || []).includes(me);
+        const comments = commentsBy[rep.id] || [];
+        const upvoters = rep.upvoters || [];
+        const voted = upvoters.includes(me);
         const open = openComments.has(rep.id);
+        const status = rep.status || 'Pending';
         return `
-        <article id="report-${rep.id}" class="feed-item bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden transition hover:shadow-md p-4 sm:p-5 space-y-3">
+        <article id="report-${esc(rep.id)}" class="feed-item bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden transition hover:shadow-md p-4 sm:p-5 space-y-3">
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3">
               <div class="w-9 h-9 rounded-full bg-caps-700 text-white font-bold flex items-center justify-center text-xs shadow-sm">${esc(rep.authorInitials || '??')}</div>
@@ -449,10 +405,10 @@
                   <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${esc(rep.authorName || 'Resident')}</h4>
                   <span class="text-[10px] bg-caps-100 text-caps-800 px-1.5 py-0.5 rounded font-semibold border border-caps-200">Verified</span>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">${esc(rep.purok || 'Barangay')} • ${esc(rep.date || 'Just now')}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">${esc(rep.purok || 'Barangay')} • ${esc(fmtDate(rep.createdAt))}</p>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">${esc(rep.status || 'Pending')}</span>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusStyle[status] || statusStyle.Pending}">${esc(status)}</span>
           </div>
 
           <div class="mt-2">
@@ -463,19 +419,19 @@
           </div>
 
           <div class="pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
-            <button onclick="toggleUpvote(${rep.id})" class="flex items-center space-x-1.5 font-semibold px-2.5 py-1 rounded-lg hover:bg-caps-50 transition ${voted ? 'text-caps-700 bg-caps-50' : 'text-slate-500 hover:text-caps-700'}">
-              <i data-lucide="thumbs-up" class="w-4 h-4"></i><span>Upvote (${rep.upvotes || 0})</span>
+            <button onclick="toggleUpvote('${esc(rep.id)}')" class="flex items-center space-x-1.5 font-semibold px-2.5 py-1 rounded-lg hover:bg-caps-50 transition ${voted ? 'text-caps-700 bg-caps-50' : 'text-slate-500 hover:text-caps-700'}">
+              <i data-lucide="thumbs-up" class="w-4 h-4"></i><span>Upvote (${upvoters.length})</span>
             </button>
-            <button onclick="toggleComments(${rep.id})" class="flex items-center space-x-1.5 font-semibold px-2.5 py-1 rounded-lg hover:bg-caps-50 transition ${open ? 'text-caps-700 bg-caps-50' : 'text-slate-500 hover:text-caps-700'}">
+            <button onclick="toggleComments('${esc(rep.id)}')" class="flex items-center space-x-1.5 font-semibold px-2.5 py-1 rounded-lg hover:bg-caps-50 transition ${open ? 'text-caps-700 bg-caps-50' : 'text-slate-500 hover:text-caps-700'}">
               <i data-lucide="message-circle" class="w-4 h-4"></i><span>Comments (${comments.length})</span>
             </button>
           </div>
 
-          <div id="cm-${rep.id}" class="${open ? '' : 'hidden'} pt-1 space-y-3">
+          <div id="cm-${esc(rep.id)}" class="${open ? '' : 'hidden'} pt-1 space-y-3">
             <div class="space-y-3">
               ${comments.length ? comments.map(c => commentHTML(c, rep)).join('') : '<p class="text-[11px] text-slate-400 px-1">No comments yet. Start the conversation.</p>'}
             </div>
-            <form onsubmit="addComment(event, ${rep.id})" class="flex items-center gap-2">
+            <form onsubmit="addComment(event, '${esc(rep.id)}')" class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-full bg-caps-700 text-white font-bold text-[10px] flex items-center justify-center shrink-0">${esc(initials)}</div>
               <input type="text" name="c" required maxlength="500" autocomplete="off" placeholder="Write a comment..." class="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition">
               <button type="submit" title="Post comment" class="p-2 bg-caps-600 hover:bg-caps-700 text-white rounded-full transition shadow-sm"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>
@@ -483,6 +439,9 @@
           </div>
         </article>`;
       }).join('');
+
+      Object.entries(drafts).forEach(([cmId, v]) => { const i = document.querySelector(`#${cmId} input[name="c"]`); if (i) i.value = v; });
+      if (focusCm) document.querySelector(`#${focusCm} input[name="c"]`)?.focus();
 
       lucide.createIcons();
       filterFeedBySearch();
@@ -496,116 +455,85 @@
       if (openComments.has(id)) document.querySelector(`#cm-${id} input[name="c"]`)?.focus();
     }
 
-    function addComment(e, repId) {
+    async function addComment(e, repId) {
       e.preventDefault();
-      const text = e.target.c.value.trim();
-      if (!text) return;
-      const reports = read('caps_reports');
+      const input = e.target.c;
+      const text = input.value.trim();
       const rep = reports.find(r => r.id === repId);
-      if (!rep) return;
-
-      rep.comments = rep.comments || [];
-      rep.comments.push({
-        id: Date.now(), text,
-        authorName: currentUser.name, authorEmail: currentUser.email || '',
-        authorInitials: initials, date: nowStamp()
-      });
-      write('caps_reports', reports);
-
-      // Notify the report owner (unless commenting on own report)
-      const ownerId = rep.authorEmail || rep.authorName;
-      if (ownerId && ownerId !== me) {
-        const notifs = read('caps_notifications');
-        notifs.unshift({
-          id: Date.now(), to: ownerId, reportId: repId, read: false, date: nowStamp(),
-          text: `${currentUser.name} commented on your report "${rep.title}": ${text.length > 60 ? text.slice(0, 60) + '…' : text}`
-        });
-        write('caps_notifications', notifs);
-      }
-
+      if (!text || !rep) return;
+      input.value = '';
       openComments.add(repId);
-      loadReports();
-      document.querySelector(`#cm-${repId} input[name="c"]`)?.focus();
+      try {
+        await addDoc(collection(db, 'comments'), {
+          reportId: repId, text,
+          authorId: me, authorName: myName, authorInitials: initials,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error(err);
+        input.value = text;
+        alert('Could not post your comment (' + (err.code || err.message) + ').');
+        return;
+      }
+      // Notify the report owner (unless commenting on own report)
+      if (rep.authorId && rep.authorId !== me) {
+        notify({
+          toUid: rep.authorId, type: 'comment', reportId: repId,
+          text: `${myName} commented on your report "${rep.title}": ${text.length > 60 ? text.slice(0, 60) + '…' : text}`
+        }).catch(console.error);
+      }
     }
 
-    function deleteComment(repId, cId) {
-      const reports = read('caps_reports');
-      const rep = reports.find(r => r.id === repId);
-      if (!rep) return;
-      rep.comments = (rep.comments || []).filter(c => !(c.id === cId && (c.authorEmail || c.authorName) === me));
-      write('caps_reports', reports);
-      loadReports();
+    async function deleteComment(cId) {
+      try { await deleteDoc(doc(db, 'comments', cId)); }
+      catch (err) { console.error(err); alert('Could not delete the comment.'); }
     }
 
-    // ---------- Upvotes (saved per user) ----------
-    function toggleUpvote(id) {
-      const reports = read('caps_reports');
+    // ---------- Upvotes ----------
+    async function toggleUpvote(id) {
       const rep = reports.find(r => r.id === id);
       if (!rep) return;
-      rep.upvoters = rep.upvoters || [];
-      if (rep.upvoters.includes(me)) {
-        rep.upvoters = rep.upvoters.filter(u => u !== me);
-        rep.upvotes = Math.max(0, (rep.upvotes || 1) - 1);
-      } else {
-        rep.upvoters.push(me);
-        rep.upvotes = (rep.upvotes || 0) + 1;
+      const voted = (rep.upvoters || []).includes(me);
+      const nid = `up_${id}_${me}`;
+      try {
+        await updateDoc(doc(db, 'reports', id), { upvoters: voted ? arrayRemove(me) : arrayUnion(me) });
+      } catch (err) { console.error(err); alert('Could not update your upvote.'); return; }
+      if (voted) {
+        deleteDoc(doc(db, 'notifications', nid)).catch(() => {});
+      } else if (rep.authorId && rep.authorId !== me) {
+        notify({ id: nid, toUid: rep.authorId, type: 'upvote', reportId: id, text: `${myName} upvoted your report "${rep.title}".` }).catch(() => {});
       }
-      write('caps_reports', reports);
-      loadReports();
     }
 
     // ---------- Report modal ----------
     function openReportModal() { const m = document.getElementById('report-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     function closeReportModal() { const m = document.getElementById('report-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
 
-    // Pending attachments for the report being written
     let pendingMedia = [];
-    const MAX_MEDIA = 5, MAX_VIDEO_MB = 50;
-
-    async function compressImage(file) {
-      try {
-        const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
-        const sc = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-        const c = document.createElement('canvas');
-        c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
-        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-        return await new Promise(r => c.toBlob(b => r(b || file), 'image/jpeg', 0.82));
-      } catch { return file; }   // fall back to the original file
-    }
-
+    const MAX_MEDIA = 5;
     function mediaMsg(t) {
       const el = document.getElementById('media-msg');
       el.textContent = t || ''; el.classList.toggle('hidden', !t);
     }
-
     async function addMediaFiles(input) {
       const files = Array.from(input.files || []);
-      input.value = '';                      // allow picking the same file again
+      input.value = '';
       mediaMsg('');
       for (const f of files) {
-        if (pendingMedia.length >= MAX_MEDIA) { mediaMsg(`You can attach up to ${MAX_MEDIA} files.`); break; }
-        const isVideo = f.type.startsWith('video/'), isImage = f.type.startsWith('image/');
-        if (!isVideo && !isImage) { mediaMsg('Only photos and videos can be attached.'); continue; }
-        if (isVideo && f.size > MAX_VIDEO_MB * 1024 * 1024) { mediaMsg(`Videos must be under ${MAX_VIDEO_MB} MB.`); continue; }
-        const blob = isImage ? await compressImage(f) : f;
-        pendingMedia.push({ id: 'm' + Date.now() + Math.random().toString(36).slice(2, 7), type: isVideo ? 'video' : 'image', blob, url: URL.createObjectURL(blob) });
+        if (pendingMedia.length >= MAX_MEDIA) { mediaMsg(`You can attach up to ${MAX_MEDIA} photos.`); break; }
+        if (!f.type.startsWith('image/')) { mediaMsg('Only photos can be attached.'); continue; }
+        try {
+          const dataUrl = await compressImage(f);
+          pendingMedia.push({ id: 'm' + Date.now() + Math.random().toString(36).slice(2, 7), dataUrl });
+        } catch { mediaMsg('That photo could not be read. Try another one.'); }
       }
       renderMediaPreviews();
     }
-
-    function removePending(id) {
-      const m = pendingMedia.find(x => x.id === id);
-      if (m) URL.revokeObjectURL(m.url);
-      pendingMedia = pendingMedia.filter(x => x.id !== id);
-      mediaMsg(''); renderMediaPreviews();
-    }
-
+    function removePending(id) { pendingMedia = pendingMedia.filter(x => x.id !== id); mediaMsg(''); renderMediaPreviews(); }
     function renderMediaPreviews() {
       document.getElementById('media-previews').innerHTML = pendingMedia.map(m => `
         <div class="relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
-          ${m.type === 'video'
-            ? `<video src="${m.url}#t=0.1" muted playsinline preload="metadata" class="w-full h-full object-cover"></video><span class="absolute bottom-1 left-1 text-[9px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">VIDEO</span>`
-            : `<img src="${m.url}" class="w-full h-full object-cover" alt="">`}
+          <img src="${m.dataUrl}" class="w-full h-full object-cover" alt="">
           <button type="button" onclick="removePending('${m.id}')" aria-label="Remove" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center text-sm leading-none">&times;</button>
         </div>`).join('');
     }
@@ -614,35 +542,37 @@
       e.preventDefault();
       const btn = document.getElementById('report-submit-btn');
       btn.disabled = true; btn.textContent = pendingMedia.length ? 'Uploading…' : 'Submitting…';
+      const title = document.getElementById('modal-title').value.trim();
+      const purok = document.getElementById('modal-purok').value.trim();
       try {
-        for (const m of pendingMedia) await CapsMedia.put(m.id, m.blob);
+        const ref = doc(collection(db, 'reports'));
+        await setDoc(ref, {
+          title, purok,
+          category: document.getElementById('modal-category').value,
+          description: document.getElementById('modal-desc').value.trim(),
+          status: 'Pending',
+          authorId: me, authorName: myName, authorInitials: initials,
+          upvoters: [me],
+          mediaCount: pendingMedia.length,
+          createdAt: serverTimestamp()
+        });
+        for (let i = 0; i < pendingMedia.length; i++) {
+          await setDoc(doc(db, 'reports', ref.id, 'media', pendingMedia[i].id), {
+            type: 'image', data: pendingMedia[i].dataUrl, order: i, authorId: me, createdAt: serverTimestamp()
+          });
+        }
+        // tell the admin
+        notify({ toUid: 'admin', type: 'new_report', reportId: ref.id, text: `New report from ${myName}: "${title}" (${purok})` }).catch(console.error);
+
+        ['modal-title', 'modal-desc', 'modal-purok'].forEach(id => document.getElementById(id).value = '');
+        pendingMedia = []; renderMediaPreviews(); mediaMsg('');
+        closeReportModal();
       } catch (err) {
+        console.error(err);
+        alert('Could not submit your report (' + (err.code || err.message) + ').');
+      } finally {
         btn.disabled = false; btn.textContent = 'Submit Report';
-        mediaMsg('Could not save your photos/videos on this device. Remove them or free up storage and try again.');
-        return;
       }
-      pendingMedia.forEach(m => mediaURLs.set(m.id, m.url));
-      const reports = read('caps_reports');
-      reports.unshift({
-        id: Date.now(),
-        title: document.getElementById('modal-title').value,
-        category: document.getElementById('modal-category').value,
-        purok: document.getElementById('modal-purok').value,
-        description: document.getElementById('modal-desc').value,
-        media: pendingMedia.map(m => ({ id: m.id, type: m.type })),
-        authorName: currentUser.name,
-        authorEmail: currentUser.email || '',
-        authorInitials: initials,
-        status: 'Pending',
-        upvotes: 1, upvoters: [me], comments: [],
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      });
-      write('caps_reports', reports);
-      ['modal-title', 'modal-desc', 'modal-purok'].forEach(id => document.getElementById(id).value = '');
-      pendingMedia = []; renderMediaPreviews(); mediaMsg('');
-      btn.disabled = false; btn.textContent = 'Submit Report';
-      closeReportModal();
-      loadReports();
     }
 
     function filterFeedBySearch() {
@@ -652,35 +582,26 @@
       });
     }
 
-    function openLogoutModal() {
-      const m = document.getElementById('logout-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-    function closeLogoutModal() {
-      const m = document.getElementById('logout-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-    }
-    function confirmLogout() {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-    }
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeLogoutModal();
-    });
-    document.getElementById('logout-modal').addEventListener('click', function (e) {
-      if (e.target === this) closeLogoutModal();
+    function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function confirmLogout() { logout(); }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLogoutModal(); });
+    document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
+
+    // Inline onclick="" handlers in the HTML need these on window
+    Object.assign(window, {
+      openReportModal, closeReportModal, submitNewReport, addMediaFiles, removePending,
+      toggleHotlinesMobile, scrollToHotlines, toggleNotifs, closeNotifs, markAllRead, openNotif,
+      toggleUpvote, toggleComments, addComment, deleteComment, filterFeedBySearch,
+      openLogoutModal, closeLogoutModal, confirmLogout
     });
 
     // ---------- Init ----------
     lucide.createIcons();
-    loadReports();
     renderNotifs();
-    // Deep links from the bottom nav on other pages
     if (location.hash === '#report') { openReportModal(); history.replaceState(null, '', 'dashboard.html'); }
     else if (location.hash === '#hotlines') { scrollToHotlines(); }
-    else if (location.hash === '#notifications') { toggleNotifs({ stopPropagation(){} }); history.replaceState(null, '', 'dashboard.html'); }
+    else if (location.hash === '#notifications') { toggleNotifs({ stopPropagation() {} }); history.replaceState(null, '', 'dashboard.html'); }
   </script>
 </body>
 </html>
