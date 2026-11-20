@@ -40,9 +40,9 @@ service cloud.firestore {
                     && request.resource.data.upvoters == [request.auth.uid];
 
       allow update: if signedIn() && (
-        // Admin: may change ONLY the status
+        // Admin: may change ONLY the status and its history log
         ( isAdmin()
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'history'])
           && request.resource.data.status in ['Pending', 'Under Review', 'In Progress', 'Resolved'] )
         ||
         // Anyone: may add or remove ONLY their own upvote

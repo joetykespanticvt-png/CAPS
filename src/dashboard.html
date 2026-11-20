@@ -52,7 +52,7 @@
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-caps-300">
               <i data-lucide="search" class="w-4 h-4"></i>
             </span>
-            <input type="text" id="feed-search" onkeyup="filterFeedBySearch()" placeholder="Search reports, puroks, or issues..." class="w-full pl-9 pr-4 py-1.5 bg-caps-950/60 text-white placeholder-caps-300/70 text-sm rounded-lg border border-caps-700/60 focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-caps-950/90 transition">
+            <input type="text" id="feed-search" oninput="filterFeedBySearch('d')" autocomplete="off" placeholder="Search reports, puroks, or issues..." class="w-full pl-9 pr-4 py-1.5 bg-caps-950/60 text-white placeholder-caps-300/70 text-sm rounded-lg border border-caps-700/60 focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-caps-950/90 transition">
           </div>
 
           <div class="relative ml-auto md:ml-0">
@@ -86,6 +86,17 @@
           </button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Mobile search (same feed search as the desktop bar) -->
+    <div class="md:hidden px-4 pb-3 -mt-1">
+      <div class="relative w-full">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-caps-300">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </span>
+        <input type="text" id="feed-search-m" oninput="filterFeedBySearch('m')" enterkeyhint="search" autocomplete="off" placeholder="Search reports, puroks, or issues..." class="w-full pl-9 pr-9 py-2 bg-caps-950/60 text-white placeholder-caps-300/70 text-sm rounded-lg border border-caps-700/60 focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-caps-950/90 transition">
+        <button type="button" id="feed-search-clear" onclick="clearFeedSearch()" aria-label="Clear search" class="hidden absolute inset-y-0 right-0 pr-3 items-center text-caps-300 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
     </div>
   </header>
@@ -146,6 +157,8 @@
           <i data-lucide="plus-circle" class="w-4 h-4"></i><span>Submit First Report</span>
         </button>
       </div>
+
+      <div id="search-empty" class="hidden bg-white rounded-xl border border-slate-200/80 p-6 text-center text-xs text-slate-500 shadow-sm">No reports match your search.</div>
 
       <div id="reports-feed" class="space-y-4"></div>
     </section>
@@ -695,11 +708,28 @@
       }
     }
 
-    function filterFeedBySearch() {
-      const q = document.getElementById('feed-search').value.toLowerCase();
+    function filterFeedBySearch(src) {
+      const d = document.getElementById('feed-search');
+      const m = document.getElementById('feed-search-m');
+      // keep the desktop and mobile bars showing the same text
+      if (src === 'm') d.value = m.value;
+      else if (src === 'd') m.value = d.value;
+      const raw = (src === 'm' ? m.value : src === 'd' ? d.value : (d.value || m.value));
+      const q = raw.trim().toLowerCase();
+      document.getElementById('feed-search-clear').classList.toggle('hidden', !raw);
+      document.getElementById('feed-search-clear').classList.toggle('flex', !!raw);
+      let shown = 0;
       document.querySelectorAll('.feed-item').forEach(item => {
-        item.style.display = item.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+        const hit = item.innerText.toLowerCase().includes(q);
+        item.style.display = hit ? 'block' : 'none';
+        if (hit) shown++;
       });
+      document.getElementById('search-empty').classList.toggle('hidden', !(q && reports.length && shown === 0));
+    }
+    function clearFeedSearch() {
+      document.getElementById('feed-search').value = '';
+      const m = document.getElementById('feed-search-m'); m.value = '';
+      filterFeedBySearch('m'); m.focus();
     }
 
     function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
@@ -712,7 +742,7 @@
     Object.assign(window, {
       openReportModal, closeReportModal, submitNewReport, addMediaFiles, removePending,
       toggleHotlinesMobile, scrollToHotlines, toggleNotifs, closeNotifs, markAllRead, openNotif,
-      toggleUpvote, toggleComments, addComment, deleteComment, filterFeedBySearch,
+      toggleUpvote, toggleComments, addComment, deleteComment, filterFeedBySearch, clearFeedSearch,
       openLogoutModal, closeLogoutModal, confirmLogout,
       togglePinMap, clearPin, useMyLocation, openMapViewer, closeMapViewer, openReportMap
     });

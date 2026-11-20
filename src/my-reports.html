@@ -6,6 +6,8 @@
   <title>CAPS Portal - My Reports</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     tailwind.config = {
       theme: { extend: { colors: { caps: {
@@ -38,6 +40,10 @@
     .cap-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, #15803d, #22c55e); }
     #logout-modal { animation: capsFadeIn .2s ease both; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
     #logout-modal > div { animation: capsPop .3s cubic-bezier(.22,1,.36,1) both; }
+    /* Map pin viewer (Leaflet) */
+    .leaflet-container { font-family: inherit; z-index: 0; isolation: isolate; }
+    .caps-pin { background: none; border: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+    #map-viewer { animation: capsFadeIn .2s ease both; }
     a:focus-visible, button:focus-visible { outline: 2px solid #22c55e; outline-offset: 2px; }
 
     /* Mobile bottom navigation (same on every page) */
@@ -97,6 +103,24 @@
     <a href="dashboard.html#hotlines" class="bn-item"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Hotlines</span></a>
     <a href="profile.html" class="bn-item"><i data-lucide="user" class="w-5 h-5"></i><span>Profile</span></a>
   </nav>
+
+  <!-- MODAL: VIEW REPORT LOCATION -->
+  <div id="map-viewer" class="hidden fixed inset-0 z-[65] items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700 shrink-0"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+          <h3 id="map-viewer-title" class="font-bold text-sm text-slate-900 truncate">Report location</h3>
+        </div>
+        <button type="button" onclick="closeMapViewer()" aria-label="Close map" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="map-viewer-canvas" class="h-[55vh] sm:h-80 w-full bg-slate-100"></div>
+      <div class="flex items-center justify-between gap-3 px-4 py-3 text-[11px]">
+        <span id="map-viewer-coords" class="text-slate-500 truncate"></span>
+        <a id="map-viewer-link" href="#" target="_blank" rel="noopener" class="shrink-0 font-semibold text-caps-700 hover:underline inline-flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Open in Maps</a>
+      </div>
+    </div>
+  </div>
 
   <!-- LOGOUT CONFIRMATION MODAL -->
   <div id="logout-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/50 px-4" role="dialog" aria-modal="true" aria-labelledby="logout-title">
@@ -202,7 +226,10 @@
             <div class="min-w-0">
               <span class="text-xs font-bold text-caps-800 uppercase tracking-wider bg-caps-50 px-2.5 py-1 rounded border border-caps-100">${esc(rep.category)}</span>
               <h3 class="font-bold text-slate-900 text-xl mt-3 break-words">${esc(rep.title)}</h3>
-              <p class="text-sm text-slate-400 mt-1">${esc(rep.purok)} • ${esc(fmtDate(rep.createdAt))}</p>
+              <p class="text-sm text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span>${esc(rep.purok)} • ${esc(fmtDate(rep.createdAt))}</span>
+                ${hasPin(rep) ? `<button type="button" onclick="openReportMap('${esc(rep.id)}')" class="inline-flex items-center gap-1 text-xs font-semibold text-caps-700 bg-caps-50 border border-caps-100 px-2 py-0.5 rounded hover:bg-caps-100 transition"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>View pin</button>` : ''}
+              </p>
             </div>
             <span class="px-3.5 py-1.5 rounded-full text-xs font-bold border shrink-0 ${statusStyle[status] || statusStyle.Pending}">${esc(status)}</span>
           </div>
@@ -235,6 +262,31 @@
       hydrateMedia();
     }
 
+    // ---------- Map pin viewer (Leaflet + OpenStreetMap) ----------
+    const PIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 26.6 16 39 16 39s15-12.4 15-23.2C31 7.6 24.3 1 16 1z" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15.5" r="5.5" fill="#fff"/></svg>';
+    const makePinIcon = () => L.divIcon({ className: 'caps-pin', html: PIN_SVG, iconSize: [32, 40], iconAnchor: [16, 39] });
+    const addTiles = (map) => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    const hasPin = (r) => r && r.location && Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng);
+
+    let viewMap = null, viewMarker = null;
+    function openMapViewer(lat, lng, title) {
+      const m = document.getElementById('map-viewer');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('map-viewer-title').textContent = title || 'Report location';
+      document.getElementById('map-viewer-coords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      document.getElementById('map-viewer-link').href = `https://www.google.com/maps?q=${lat},${lng}`;
+      if (!viewMap) { viewMap = L.map('map-viewer-canvas', { center: [lat, lng], zoom: 17 }); addTiles(viewMap); }
+      if (viewMarker) viewMarker.setLatLng([lat, lng]); else viewMarker = L.marker([lat, lng], { icon: makePinIcon() }).addTo(viewMap);
+      lucide.createIcons();
+      setTimeout(() => { viewMap.invalidateSize(); viewMap.setView([lat, lng], 17); }, 60);
+    }
+    function closeMapViewer() { const m = document.getElementById('map-viewer'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function openReportMap(id) {
+      const r = myReports.find(x => x.id === id);
+      if (hasPin(r)) openMapViewer(r.location.lat, r.location.lng, `${r.title}${r.purok ? ' · ' + r.purok : ''}`);
+    }
+    document.getElementById('map-viewer').addEventListener('click', function (e) { if (e.target === this) closeMapViewer(); });
+
     async function deleteReport(id) {
       if (!confirm('Are you sure you want to delete this report?')) return;
       try {
@@ -249,9 +301,9 @@
     function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
     function confirmLogout() { logout(); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogoutModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLogoutModal(); closeMapViewer(); } });
     document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
-    Object.assign(window, { toggleComments, deleteReport, openLogoutModal, closeLogoutModal, confirmLogout });
+    Object.assign(window, { toggleComments, deleteReport, openLogoutModal, closeLogoutModal, confirmLogout, openMapViewer, closeMapViewer, openReportMap });
 
     lucide.createIcons();
     loadMyReports();
