@@ -6,6 +6,8 @@
   <title>CAPS Portal - Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     tailwind.config = {
       theme: { extend: { colors: { caps: {
@@ -26,6 +28,8 @@
     .bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;font-size:10px;font-weight:500;color:#64748b;background:none;border:0;cursor:pointer;transition:color .2s ease,background-color .2s ease}
     .bn-item:active{background:#f0fdf4}
     .bn-item.active{color:#15803d;font-weight:700}
+    .leaflet-container { font-family: inherit; z-index: 0; isolation: isolate; }
+    .caps-pin { background: none; border: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
     main aside nav a { transition: background-color .25s ease, color .25s ease, translate .25s ease, box-shadow .25s ease; }
     main aside nav a:hover { translate: 4px 0; }
     .bn-item.active::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#15803d,#22c55e)}
@@ -96,6 +100,7 @@
           <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">Navigation</h3>
           <nav class="space-y-2">
             <a href="admin.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-bold bg-caps-100 text-caps-700 nav-active"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>
+            <button type="button" onclick="openHistoryModal()" class="w-full text-left flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="history" class="w-5 h-5"></i><span>Record History</span></button>
             <button type="button" onclick="openHotlinesModal()" class="w-full text-left flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Emergency Hotlines</span></button>
             <a href="profile.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="user" class="w-5 h-5"></i><span>Profile Settings</span></a>
           </nav>
@@ -123,11 +128,12 @@
     </aside>
 
     <section id="reports-section" class="lg:col-span-9 space-y-4 scroll-mt-20">
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-        <div>
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between gap-3">
+        <div class="min-w-0">
           <h2 class="text-lg font-bold text-slate-900">Report History</h2>
           <p class="text-xs text-slate-500">Every resident report, newest first, with the reporter, date and time, status, upvotes and comments.</p>
         </div>
+        <button type="button" onclick="openHistoryModal()" class="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-caps-700 bg-caps-50 border border-caps-100 px-3 py-2 rounded-xl hover:bg-caps-100 transition"><i data-lucide="history" class="w-4 h-4"></i><span>History</span></button>
       </div>
 
       <div id="status-filters" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
@@ -136,11 +142,47 @@
   </main>
 
   <!-- MOBILE BOTTOM NAVIGATION (identical on every page) -->
-  <nav aria-label="Main navigation" class="fixed bottom-0 inset-x-0 z-40 lg:hidden grid grid-cols-3 bg-white border-t border-slate-200 shadow-[0_-6px_18px_-10px_rgba(0,0,0,.25)]" style="height:calc(4rem + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)">
+  <nav aria-label="Main navigation" class="fixed bottom-0 inset-x-0 z-40 lg:hidden grid grid-cols-4 bg-white border-t border-slate-200 shadow-[0_-6px_18px_-10px_rgba(0,0,0,.25)]" style="height:calc(4rem + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)">
     <a href="admin.html" class="bn-item active"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>
+    <button type="button" onclick="openHistoryModal()" class="bn-item"><i data-lucide="history" class="w-5 h-5"></i><span>History</span></button>
     <button type="button" onclick="openHotlinesModal()" class="bn-item"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Hotlines</span></button>
     <a href="profile.html" class="bn-item"><i data-lucide="user" class="w-5 h-5"></i><span>Profile</span></a>
   </nav>
+
+  <!-- MODAL: RECORD HISTORY (all reports) -->
+  <div id="history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-stretch sm:items-center justify-center sm:p-4">
+    <div class="bg-white sm:rounded-2xl w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[88vh] flex flex-col shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700 shrink-0"><i data-lucide="history" class="w-5 h-5"></i></div>
+          <div class="min-w-0">
+            <h3 class="font-bold text-base text-slate-900 leading-tight">Record History</h3>
+            <p class="text-[11px] text-slate-500">Who reported, when, and every status update</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeHistoryModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="history-list" class="overflow-y-auto flex-1 divide-y divide-slate-100"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW REPORT LOCATION -->
+  <div id="map-viewer" class="hidden fixed inset-0 z-[65] items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700 shrink-0"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+          <h3 id="map-viewer-title" class="font-bold text-sm text-slate-900 truncate">Report location</h3>
+        </div>
+        <button type="button" onclick="closeMapViewer()" aria-label="Close map" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="map-viewer-canvas" class="h-[55vh] sm:h-80 w-full bg-slate-100"></div>
+      <div class="flex items-center justify-between gap-3 px-4 py-3 text-[11px]">
+        <span id="map-viewer-coords" class="text-slate-500 truncate"></span>
+        <a id="map-viewer-link" href="#" target="_blank" rel="noopener" class="shrink-0 font-semibold text-caps-700 hover:underline inline-flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Open in Maps</a>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: EMERGENCY HOTLINES -->
   <div id="hotlines-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
@@ -177,7 +219,7 @@
       notifListHTML, toast, mediaHTML, hydrateMedia, deleteReportMedia, compressImage
     } from "./caps-common.js?v=20261120";
     import {
-      collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp
+      collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, arrayUnion, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const { user, profile } = await requireUser({ admin: true });   // non-admins are sent away
@@ -195,9 +237,132 @@
     let commentsBy = {};
     let notifs = [];
     const collapsedComments = new Set();   // comments are shown by default
+    const openHistory = new Set();         // per-post Record History is collapsed by default
     let usersBy = {};                      // uid -> profile (admin may read all users)
     const nameOf = (uid, fallback) => (usersBy[uid] && usersBy[uid].fullName) || fallback || 'Resident';
     const fmtFull = (ts) => (toDate(ts) || new Date()).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+    const fmtAt = (n) => n ? new Date(n).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Time not recorded';
+    const hasPin = (r) => r && r.location && Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng);
+    const badge = (st) => `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${statusStyle[st] || statusStyle.Pending}">${esc(st)}</span>`;
+
+    // ---------- Record history (stored on each report as `history`) ----------
+    function historyOf(rep) {
+      const cur = rep.status || 'Pending';
+      const h = (rep.history || []).map(e => ({ ...e }));
+      if (!h.some(e => e.type === 'reported')) {
+        h.push({ type: 'reported', to: 'Pending', byId: rep.authorId, byName: rep.authorName, at: (toDate(rep.createdAt) || new Date()).getTime() });
+      }
+      h.sort((a, b) => (a.at || 0) - (b.at || 0));
+      const last = [...h].reverse().find(e => e.to)?.to || 'Pending';
+      if (last !== cur) h.push({ type: 'status', from: last, to: cur, byName: 'Barangay Admin', at: null });   // older report, update was not logged
+      return h;
+    }
+    function eventText(e, rep) {
+      const who = `<b class="text-slate-900">${esc(nameOf(e.byId, e.byName))}</b>`;
+      return e.type === 'reported'
+        ? `${who} reported this issue ${badge('Pending')}`
+        : `Status updated ${e.from ? badge(e.from) + ' <span class="text-slate-400">→</span> ' : ''}${badge(e.to)} <span class="text-slate-500">by</span> ${who}`;
+    }
+    function historySectionHTML(rep) {
+      const open = openHistory.has(rep.id);
+      const h = historyOf(rep);
+      return `
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <button type="button" data-toggle-history="${esc(rep.id)}" class="flex items-center gap-1.5 text-xs font-bold ${open ? 'text-emerald-800' : 'text-slate-600'}">
+            <i data-lucide="history" class="w-4 h-4"></i><span>Record History (${h.length})</span><i data-lucide="${open ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4"></i>
+          </button>
+          ${open ? `<ol class="relative ml-3 border-l-2 border-slate-200 space-y-4">${h.map(e => `
+            <li class="relative ml-5">
+              <span class="absolute -left-[33px] top-0 w-6 h-6 rounded-full border flex items-center justify-center ${e.type === 'reported' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}"><i data-lucide="${e.type === 'reported' ? 'file-plus' : 'refresh-cw'}" class="w-3 h-3"></i></span>
+              <p class="text-xs text-slate-600 leading-relaxed flex flex-wrap items-center gap-x-1.5 gap-y-1">${eventText(e, rep)}</p>
+              <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>${esc(fmtAt(e.at))}</p>
+            </li>`).join('')}</ol>` : ''}
+        </div>`;
+    }
+
+    // all reports, one timeline (Record History modal)
+    function renderHistoryModal() {
+      const rows = [];
+      reports.forEach(rep => historyOf(rep).forEach(e => rows.push({ rep, e })));
+      rows.sort((a, b) => (b.e.at || 0) - (a.e.at || 0));
+      const el = document.getElementById('history-list');
+      if (!rows.length) { el.innerHTML = '<p class="p-8 text-center text-xs text-slate-400">No records yet.</p>'; return; }
+      el.innerHTML = rows.slice(0, 300).map(({ rep, e }) => `
+        <button type="button" data-jump="${esc(rep.id)}" class="w-full text-left flex items-start gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50 transition">
+          <span class="mt-0.5 w-7 h-7 rounded-full border flex items-center justify-center shrink-0 ${e.type === 'reported' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}"><i data-lucide="${e.type === 'reported' ? 'file-plus' : 'refresh-cw'}" class="w-3.5 h-3.5"></i></span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm font-bold text-slate-900 break-words">${esc(rep.title)}</span>
+            <span class="block text-xs text-slate-600 mt-1 leading-relaxed flex flex-wrap items-center gap-x-1.5 gap-y-1">${eventText(e, rep)}</span>
+            <span class="block text-[11px] text-slate-400 mt-1">${e.type === 'reported' ? '' : `Reported by ${esc(nameOf(rep.authorId, rep.authorName))} · `}${esc(rep.purok || '')}</span>
+            <span class="block text-[11px] text-slate-400 mt-0.5"><i data-lucide="clock" class="w-3 h-3 inline -mt-0.5"></i> ${esc(fmtAt(e.at))}</span>
+          </span>
+        </button>`).join('');
+      lucide.createIcons();
+    }
+    function openHistoryModal() { const m = document.getElementById('history-modal'); m.classList.remove('hidden'); m.classList.add('flex'); renderHistoryModal(); }
+    function closeHistoryModal() { const m = document.getElementById('history-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    document.getElementById('history-modal').addEventListener('click', function (e) {
+      if (e.target === this) { closeHistoryModal(); return; }
+      const j = e.target.closest('[data-jump]');
+      if (j) { closeHistoryModal(); jumpToReport(j.dataset.jump); }
+    });
+    function jumpToReport(id) {
+      statusFilter = 'all';
+      document.getElementById('admin-search').value = '';
+      collapsedComments.delete(id);
+      renderAdminReports();
+      const el = document.getElementById('rep-' + id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-emerald-500');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-emerald-500'), 2000);
+      }
+    }
+
+    // ---------- Progress tracker ----------
+    function trackerHTML(rep, cur) {
+      const n = statusSteps.length;
+      const idx = Math.max(0, statusSteps.indexOf(cur));
+      const half = 100 / n / 2;
+      return `
+        <div class="bg-caps-50/70 border border-caps-100 rounded-2xl px-3 sm:px-5 py-4">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Progress Tracker</p>
+          <div class="relative">
+            <div class="absolute h-[3px] bg-slate-200 rounded-full" style="top:17px;left:${half}%;right:${half}%"><div class="h-full bg-caps-600 rounded-full transition-all" style="width:${n > 1 ? idx / (n - 1) * 100 : 0}%"></div></div>
+            <div class="relative grid" style="grid-template-columns:repeat(${n},minmax(0,1fr))">
+              ${statusSteps.map((s, i) => {
+                const reached = i <= idx, current = i === idx;
+                return `<button type="button" data-step="${esc(s)}" data-rep="${esc(rep.id)}" ${current ? 'aria-current="step"' : ''} title="${current ? 'Current status' : 'Set status to ' + esc(s)}" class="group flex flex-col items-center gap-1.5 px-0.5">
+                  <span class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition ${reached ? 'bg-caps-600 text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-caps-100 group-hover:text-caps-700'} ${current ? 'ring-4 ring-caps-200' : ''}">${reached ? '<i data-lucide="check" class="w-4 h-4"></i>' : i + 1}</span>
+                  <span class="text-[10px] sm:text-xs text-center leading-tight ${reached ? 'text-caps-700 font-bold' : 'text-slate-400 font-semibold'}">${esc(s)}</span>
+                </button>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ---------- Map viewer ----------
+    const PIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 26.6 16 39 16 39s15-12.4 15-23.2C31 7.6 24.3 1 16 1z" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15.5" r="5.5" fill="#fff"/></svg>';
+    let viewMap = null, viewMarker = null;
+    function openMapViewer(lat, lng, title) {
+      const m = document.getElementById('map-viewer');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('map-viewer-title').textContent = title || 'Report location';
+      document.getElementById('map-viewer-coords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      document.getElementById('map-viewer-link').href = `https://www.google.com/maps?q=${lat},${lng}`;
+      const icon = L.divIcon({ className: 'caps-pin', html: PIN_SVG, iconSize: [32, 40], iconAnchor: [16, 39] });
+      if (!viewMap) {
+        viewMap = L.map('map-viewer-canvas', { center: [lat, lng], zoom: 17 });
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(viewMap);
+      }
+      if (viewMarker) viewMarker.setLatLng([lat, lng]); else viewMarker = L.marker([lat, lng], { icon }).addTo(viewMap);
+      lucide.createIcons();
+      setTimeout(() => { viewMap.invalidateSize(); viewMap.setView([lat, lng], 17); }, 60);
+    }
+    function closeMapViewer() { const m = document.getElementById('map-viewer'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    document.getElementById('map-viewer').addEventListener('click', function (e) { if (e.target === this) closeMapViewer(); });
 
     // ---------- Notifications (new reports appear here) ----------
     function renderNotifs() {
@@ -222,16 +387,7 @@
       if (!n) return;
       if (!n.read) markNotifRead(id).catch(console.error);
       closeNotifs();
-      statusFilter = 'all';
-      document.getElementById('admin-search').value = '';
-      collapsedComments.delete(n.reportId);
-      renderAdminReports();
-      const el = document.getElementById('rep-' + n.reportId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('ring-2', 'ring-emerald-500');
-        setTimeout(() => el.classList.remove('ring-2', 'ring-emerald-500'), 2000);
-      }
+      jumpToReport(n.reportId);
     }
 
     const HOTLINES = [
@@ -305,7 +461,7 @@
     function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
     function confirmLogout() { logout(); }
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLogoutModal(); closeNotifs(); closeHotlinesModal(); } });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLogoutModal(); closeNotifs(); closeHotlinesModal(); closeHistoryModal(); closeMapViewer(); } });
     document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
 
     // inline onclick="" handlers need these on window (the script is a module)
@@ -313,7 +469,8 @@
       toggleNotifs, closeNotifs, markAllRead, openNotif,
       filterReportsBySearch,
       openLogoutModal, closeLogoutModal, confirmLogout,
-      openHotlinesModal, closeHotlinesModal
+      openHotlinesModal, closeHotlinesModal,
+      openHistoryModal, closeHistoryModal, openMapViewer, closeMapViewer, jumpToReport
     });
 
     // ---------- Reports + comments (live) ----------
@@ -343,6 +500,13 @@
       document.getElementById('resolved-concerns-count').innerText = reports.filter(r => r.status === 'Resolved').length;
       renderNav();
       lucide.createIcons();
+      if (!document.getElementById('history-modal').classList.contains('hidden')) renderHistoryModal();
+
+      // keep half-typed admin comments (and focus) when live data refreshes the list
+      const drafts = {};
+      container.querySelectorAll('form[data-comment-form] input[name="c"]').forEach(i => { if (i.value) drafts[i.form.dataset.commentForm] = i.value; });
+      const act = document.activeElement;
+      const focusId = act && act.name === 'c' && container.contains(act) ? act.form?.dataset.commentForm : null;
 
       if (reports.length === 0) {
         container.innerHTML = `
@@ -391,12 +555,15 @@
                 <p class="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                   <span class="inline-flex items-center gap-1"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${esc(fmtFull(rep.createdAt))}</span>
                   <span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${esc(rep.purok)}</span>
+                  ${hasPin(rep) ? `<button type="button" data-view-map="${esc(rep.id)}" class="inline-flex items-center gap-1 font-semibold text-caps-700 bg-caps-50 border border-caps-100 px-1.5 py-0.5 rounded hover:bg-caps-100 transition"><i data-lucide="map" class="w-3 h-3"></i>View pin</button>` : ''}
                 </p>
               </div>
             </div>
 
             <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">${esc(rep.description)}</p>
             ${mediaHTML(rep)}
+
+            ${trackerHTML(rep, currentStatus)}
 
             <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
               <div class="flex items-center space-x-2">
@@ -425,6 +592,7 @@
                   <div class="min-w-0 flex-1">
                     <div class="bg-slate-50 border border-slate-200/70 rounded-2xl px-3 py-2">
                       <span class="text-xs font-bold text-slate-900">${esc(nameOf(c.authorId, c.authorName))}</span>
+                      ${c.isAdmin ? '<span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-semibold border border-amber-200 ml-1">Barangay Admin</span>' : ''}
                       <p class="text-xs text-slate-700 mt-0.5 break-words">${esc(c.text)}</p>
                     </div>
                     <div class="flex items-center gap-3 px-2 mt-0.5 text-[10px] text-slate-400">
@@ -433,24 +601,35 @@
                     </div>
                   </div>
                 </div>`).join('') : '<p class="text-[11px] text-slate-400">No comments on this report.</p>') : ''}
+              ${open ? `
+              <form data-comment-form="${esc(rep.id)}" class="flex items-center gap-2 pt-1">
+                <div class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-bold text-[10px] flex items-center justify-center shrink-0">${esc(myInitials === '?' ? 'AD' : myInitials)}</div>
+                <input type="text" name="c" required maxlength="500" autocomplete="off" placeholder="Comment as Barangay Admin..." class="flex-1 min-w-0 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition">
+                <button type="submit" title="Post comment" class="p-2 bg-caps-600 hover:bg-caps-700 text-white rounded-full transition shadow-sm shrink-0"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>
+              </form>` : ''}
             </div>
+
+            ${historySectionHTML(rep)}
           </div>`;
       }).join('');
+
+      Object.entries(drafts).forEach(([id, v]) => { const i = container.querySelector(`form[data-comment-form="${CSS.escape(id)}"] input[name="c"]`); if (i) i.value = v; });
+      if (focusId) container.querySelector(`form[data-comment-form="${CSS.escape(focusId)}"] input[name="c"]`)?.focus();
 
       lucide.createIcons();
       hydrateMedia();
     }
 
     // ---------- Actions ----------
-    container.addEventListener('change', async (e) => {
-      const sel = e.target.closest('select[data-status]');
-      if (!sel) return;
-      const id = sel.dataset.status;
+    async function updateStatus(id, newStatus) {
       const rep = reports.find(r => r.id === id);
-      const newStatus = sel.value;
-      if (!rep || rep.status === newStatus) return;
+      const from = rep ? (rep.status || 'Pending') : null;
+      if (!rep || from === newStatus) return;
       try {
-        await updateDoc(doc(db, 'reports', id), { status: newStatus });
+        await updateDoc(doc(db, 'reports', id), {
+          status: newStatus,
+          history: arrayUnion({ type: 'status', from, to: newStatus, byId: me, byName: myName, at: Date.now() })
+        });
         if (rep.authorId) {
           notify({
             toUid: rep.authorId, type: 'status', reportId: id,
@@ -462,9 +641,68 @@
         alert('Could not update status: ' + (err.code || err.message));
         renderAdminReports();
       }
+    }
+
+    container.addEventListener('change', (e) => {
+      const sel = e.target.closest('select[data-status]');
+      if (sel) updateStatus(sel.dataset.status, sel.value);
+    });
+
+    // admin comment on a resident's post
+    container.addEventListener('submit', async (e) => {
+      const f = e.target.closest('form[data-comment-form]');
+      if (!f) return;
+      e.preventDefault();
+      const repId = f.dataset.commentForm;
+      const rep = reports.find(r => r.id === repId);
+      const input = f.elements.c;
+      const text = input.value.trim();
+      if (!rep || !text) return;
+      input.value = '';
+      collapsedComments.delete(repId);
+      try {
+        await addDoc(collection(db, 'comments'), {
+          reportId: repId, text, isAdmin: true,
+          authorId: me, authorName: myName, authorInitials: myInitials,
+          createdAt: serverTimestamp()
+        });
+        if (rep.authorId) {
+          notify({
+            toUid: rep.authorId, type: 'comment', reportId: repId,
+            text: `Barangay Admin commented on your report "${rep.title}": ${text.length > 60 ? text.slice(0, 60) + '…' : text}`
+          }).catch(console.error);
+        }
+      } catch (err) {
+        console.error(err);
+        input.value = text;
+        alert('Could not post your comment: ' + (err.code || err.message));
+      }
     });
 
     container.addEventListener('click', async (e) => {
+      const step = e.target.closest('button[data-step]');
+      if (step) {
+        const rep = reports.find(r => r.id === step.dataset.rep);
+        const target = step.dataset.step;
+        if (rep && (rep.status || 'Pending') !== target && confirm(`Set this report's status to "${target}"?`)) updateStatus(rep.id, target);
+        return;
+      }
+
+      const vm = e.target.closest('button[data-view-map]');
+      if (vm) {
+        const r = reports.find(x => x.id === vm.dataset.viewMap);
+        if (hasPin(r)) openMapViewer(r.location.lat, r.location.lng, `${r.title}${r.purok ? ' · ' + r.purok : ''}`);
+        return;
+      }
+
+      const th = e.target.closest('button[data-toggle-history]');
+      if (th) {
+        const id = th.dataset.toggleHistory;
+        openHistory.has(id) ? openHistory.delete(id) : openHistory.add(id);
+        renderAdminReports();
+        return;
+      }
+
       const tg = e.target.closest('button[data-toggle-comments]');
       if (tg) {
         const id = tg.dataset.toggleComments;

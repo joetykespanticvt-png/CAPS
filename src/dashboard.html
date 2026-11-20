@@ -6,6 +6,8 @@
   <title>CAPS Portal - Barangay San Antonio De Padua II</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     tailwind.config = {
       theme: { extend: { colors: { caps: {
@@ -25,6 +27,9 @@
     .bn-item:active{background:#f0fdf4}
     .bn-item.active{color:#15803d;font-weight:700}
     .bn-item.active::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#15803d,#22c55e)}
+    /* Map pinning (Leaflet) */
+    .leaflet-container { font-family: inherit; z-index: 0; isolation: isolate; }
+    .caps-pin { background: none; border: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
     main aside nav a { transition: background-color .25s ease, color .25s ease, translate .25s ease, box-shadow .25s ease; }
     main aside nav a:hover { translate: 4px 0; }
   </style>
@@ -201,6 +206,26 @@
           </div>
         </div>
         <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-700">Pin exact location <span class="font-normal text-slate-400">(optional)</span></label>
+            <button type="button" id="pin-clear" onclick="clearPin()" class="hidden text-[11px] font-semibold text-red-600 hover:underline">Remove pin</button>
+          </div>
+          <button type="button" onclick="togglePinMap()" class="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-caps-50 hover:text-caps-700 transition">
+            <span class="flex items-center gap-2 min-w-0"><i data-lucide="map-pin" class="w-4 h-4 text-caps-600 shrink-0"></i><span id="pin-label" class="truncate">Pin on map</span></span>
+            <i id="pin-chevron" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform shrink-0"></i>
+          </button>
+          <div id="pin-panel" class="hidden mt-2 space-y-2">
+            <div class="rounded-xl overflow-hidden border border-slate-200">
+              <div id="pin-map" class="h-56 sm:h-64 w-full bg-slate-100"></div>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-[11px] text-slate-500">Tap the map or drag the pin to the exact spot.</p>
+              <button type="button" onclick="useMyLocation()" class="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-caps-700 bg-caps-50 border border-caps-100 px-2.5 py-1.5 rounded-lg hover:bg-caps-100 transition"><i data-lucide="locate-fixed" class="w-3.5 h-3.5"></i>My location</button>
+            </div>
+            <p id="pin-msg" class="hidden text-[11px] text-red-600"></p>
+          </div>
+        </div>
+        <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Details & Description</label>
           <textarea id="modal-desc" rows="3" required placeholder="Provide clear details to help barangay officials respond quickly..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-white transition"></textarea>
         </div>
@@ -220,6 +245,24 @@
           <button type="submit" id="report-submit-btn" class="px-4 py-2 text-xs font-semibold bg-caps-600 disabled:opacity-60 text-white rounded-lg hover:bg-caps-700 transition shadow-sm">Submit Report</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW REPORT LOCATION -->
+  <div id="map-viewer" class="hidden fixed inset-0 z-[65] items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700 shrink-0"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+          <h3 id="map-viewer-title" class="font-bold text-sm text-slate-900 truncate">Report location</h3>
+        </div>
+        <button type="button" onclick="closeMapViewer()" aria-label="Close map" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="map-viewer-canvas" class="h-[55vh] sm:h-80 w-full bg-slate-100"></div>
+      <div class="flex items-center justify-between gap-3 px-4 py-3 text-[11px]">
+        <span id="map-viewer-coords" class="text-slate-500 truncate"></span>
+        <a id="map-viewer-link" href="#" target="_blank" rel="noopener" class="shrink-0 font-semibold text-caps-700 hover:underline inline-flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Open in Maps</a>
+      </div>
     </div>
   </div>
 
@@ -365,6 +408,7 @@
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-xs font-bold text-slate-900">${esc(c.authorName)}</span>
                 ${isOwner ? '<span class="text-[9px] bg-caps-100 text-caps-800 px-1.5 py-0.5 rounded font-semibold border border-caps-200">Author</span>' : ''}
+                ${c.isAdmin ? '<span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-semibold border border-amber-200">Barangay Admin</span>' : ''}
               </div>
               <p class="text-xs text-slate-700 mt-0.5 leading-relaxed break-words">${esc(c.text)}</p>
             </div>
@@ -405,7 +449,10 @@
                   <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${esc(rep.authorName || 'Resident')}</h4>
                   <span class="text-[10px] bg-caps-100 text-caps-800 px-1.5 py-0.5 rounded font-semibold border border-caps-200">Verified</span>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">${esc(rep.purok || 'Barangay')} • ${esc(fmtDate(rep.createdAt))}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                  <span>${esc(rep.purok || 'Barangay')} • ${esc(fmtDate(rep.createdAt))}</span>
+                  ${hasPin(rep) ? `<button type="button" onclick="openReportMap('${esc(rep.id)}')" class="inline-flex items-center gap-0.5 font-semibold text-caps-700 bg-caps-50 border border-caps-100 px-1.5 py-0.5 rounded hover:bg-caps-100 transition"><i data-lucide="map-pin" class="w-3 h-3"></i>View pin</button>` : ''}
+                </p>
               </div>
             </div>
             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusStyle[status] || statusStyle.Pending}">${esc(status)}</span>
@@ -505,6 +552,76 @@
       }
     }
 
+    // ---------- Map pinning (Leaflet + OpenStreetMap) ----------
+    const DEFAULT_CENTER = [14.3294, 120.9367];   // Dasmariñas City — the map moves to the pin / your location
+    const PIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 26.6 16 39 16 39s15-12.4 15-23.2C31 7.6 24.3 1 16 1z" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15.5" r="5.5" fill="#fff"/></svg>';
+    const makePinIcon = () => L.divIcon({ className: 'caps-pin', html: PIN_SVG, iconSize: [32, 40], iconAnchor: [16, 39] });
+    const addTiles = (map) => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    const hasPin = (r) => r && r.location && Number.isFinite(r.location.lat) && Number.isFinite(r.location.lng);
+
+    let pinMap = null, pinMarker = null, pinLoc = null;
+    function pinUI() {
+      document.getElementById('pin-label').textContent = pinLoc ? `Pinned: ${pinLoc.lat.toFixed(5)}, ${pinLoc.lng.toFixed(5)}` : 'Pin on map';
+      document.getElementById('pin-clear').classList.toggle('hidden', !pinLoc);
+    }
+    function initPinMap() {
+      if (pinMap) return;
+      pinMap = L.map('pin-map', { center: DEFAULT_CENTER, zoom: 15 });
+      addTiles(pinMap);
+      pinMap.on('click', (e) => setPin(e.latlng.lat, e.latlng.lng));
+    }
+    function setPin(lat, lng, zoom) {
+      pinLoc = { lat, lng };
+      if (!pinMarker) {
+        pinMarker = L.marker([lat, lng], { icon: makePinIcon(), draggable: true }).addTo(pinMap);
+        pinMarker.on('dragend', () => { const p = pinMarker.getLatLng(); pinLoc = { lat: p.lat, lng: p.lng }; pinUI(); });
+      } else pinMarker.setLatLng([lat, lng]);
+      if (zoom) pinMap.setView([lat, lng], zoom);
+      pinUI();
+    }
+    function clearPin() {
+      if (pinMarker && pinMap) pinMap.removeLayer(pinMarker);
+      pinMarker = null; pinLoc = null; pinUI();
+    }
+    function togglePinMap(force) {
+      const panel = document.getElementById('pin-panel');
+      const open = typeof force === 'boolean' ? force : panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !open);
+      document.getElementById('pin-chevron')?.classList.toggle('rotate-180', open);
+      if (!open) return;
+      initPinMap();
+      setTimeout(() => { pinMap.invalidateSize(); if (pinLoc) pinMap.setView([pinLoc.lat, pinLoc.lng]); }, 60);
+    }
+    function useMyLocation() {
+      const msg = document.getElementById('pin-msg');
+      msg.classList.add('hidden');
+      if (!navigator.geolocation) { msg.textContent = 'Your device does not support location. Tap the map instead.'; msg.classList.remove('hidden'); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { initPinMap(); setPin(pos.coords.latitude, pos.coords.longitude, 18); },
+        () => { msg.textContent = 'Could not get your location. Allow location access, or tap the map instead.'; msg.classList.remove('hidden'); },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    let viewMap = null, viewMarker = null;
+    function openMapViewer(lat, lng, title) {
+      const m = document.getElementById('map-viewer');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('map-viewer-title').textContent = title || 'Report location';
+      document.getElementById('map-viewer-coords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      document.getElementById('map-viewer-link').href = `https://www.google.com/maps?q=${lat},${lng}`;
+      if (!viewMap) { viewMap = L.map('map-viewer-canvas', { center: [lat, lng], zoom: 17 }); addTiles(viewMap); }
+      if (viewMarker) viewMarker.setLatLng([lat, lng]); else viewMarker = L.marker([lat, lng], { icon: makePinIcon() }).addTo(viewMap);
+      lucide.createIcons();
+      setTimeout(() => { viewMap.invalidateSize(); viewMap.setView([lat, lng], 17); }, 60);
+    }
+    function closeMapViewer() { const m = document.getElementById('map-viewer'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function openReportMap(id) {
+      const r = reports.find(x => x.id === id);
+      if (hasPin(r)) openMapViewer(r.location.lat, r.location.lng, `${r.title}${r.purok ? ' · ' + r.purok : ''}`);
+    }
+    document.getElementById('map-viewer').addEventListener('click', function (e) { if (e.target === this) closeMapViewer(); });
+
     // ---------- Report modal ----------
     function openReportModal() { const m = document.getElementById('report-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     function closeReportModal() { const m = document.getElementById('report-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
@@ -551,6 +668,8 @@
           category: document.getElementById('modal-category').value,
           description: document.getElementById('modal-desc').value.trim(),
           status: 'Pending',
+          location: pinLoc ? { lat: pinLoc.lat, lng: pinLoc.lng } : null,
+          history: [{ type: 'reported', from: null, to: 'Pending', byId: me, byName: myName, at: Date.now() }],
           authorId: me, authorName: myName, authorInitials: initials,
           upvoters: [me],
           mediaCount: pendingMedia.length,
@@ -566,6 +685,7 @@
 
         ['modal-title', 'modal-desc', 'modal-purok'].forEach(id => document.getElementById(id).value = '');
         pendingMedia = []; renderMediaPreviews(); mediaMsg('');
+        clearPin(); togglePinMap(false);
         closeReportModal();
       } catch (err) {
         console.error(err);
@@ -585,7 +705,7 @@
     function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
     function confirmLogout() { logout(); }
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLogoutModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeLogoutModal(); closeMapViewer(); } });
     document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
 
     // Inline onclick="" handlers in the HTML need these on window
@@ -593,7 +713,8 @@
       openReportModal, closeReportModal, submitNewReport, addMediaFiles, removePending,
       toggleHotlinesMobile, scrollToHotlines, toggleNotifs, closeNotifs, markAllRead, openNotif,
       toggleUpvote, toggleComments, addComment, deleteComment, filterFeedBySearch,
-      openLogoutModal, closeLogoutModal, confirmLogout
+      openLogoutModal, closeLogoutModal, confirmLogout,
+      togglePinMap, clearPin, useMyLocation, openMapViewer, closeMapViewer, openReportMap
     });
 
     // ---------- Init ----------
