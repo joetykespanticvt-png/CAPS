@@ -1,10 +1,15 @@
 {
   "hosting": {
     "public": "src",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**/*.@(js|html)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
     ]
+  },
+  "firestore": {
+    "rules": "database/firestore.rules"
   }
 }

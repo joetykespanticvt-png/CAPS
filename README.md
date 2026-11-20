@@ -76,7 +76,7 @@ Photos are compressed in the browser and stored as base64 in Firestore (`reports
    git clone <your-repository-url>
    cd <project-folder>
    ```
-2. **Install the Firebase CLI** (skip if already installed)
+2. **Install the Firebase CLI** 
    ```
    npm install -g firebase-tools
    ```
@@ -134,12 +134,12 @@ Empty for now we are collecting more screenshots
 
 | Page | Screenshot |
 |---|---|
-| Login | ![Login](docs/Design/login.png) |
-| Register | ![Register](docs/Design/register.png) |
-| Resident Dashboard (community feed) | ![Dashboard](docs/Design/dashboard.png) |
+| Login | ![Login](docs/Design/Feed Mobile.jpg) |
+| Register | ![Register](docs/Design/Register Web.jpg) |
+| Resident Dashboard (community feed) | ![Dashboard](docs/Design/Feed Mobile.jpg) |
 | Submit a Report | ![New Report](docs/Design/new-report.png) |
-| My Reports | ![My Reports](docs/Design/my-reports.png) |
-| Profile Settings | ![Profile](docs/Design/profile.png) |
+| My Reports | ![My Reports](docs/Design/My Reports Mobiel.jpg) |
+| Profile Settings | ![Profile](docs/Design/Profile Settings.jpg) |
 | Admin Panel | ![Admin](docs/Design/admin.png) |
 
 ## Project Structure

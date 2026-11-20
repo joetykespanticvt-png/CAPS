@@ -320,16 +320,103 @@
   </div>
 
   <script type="module">
-    import { auth, db } from "./firebase-config.js";
-    import { esc, initialsOf, setAvatar, requireUser, logout } from "./caps-common.js";
-    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { auth, db, ADMIN_EMAIL } from "./firebase-config.js";
+    import { esc, initialsOf, setAvatar, logout } from "./caps-common.js?v=20261120";
+    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import {
-      updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword
+      onAuthStateChanged, updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
     lucide.createIcons();
 
-    const { user, profile } = await requireUser();
+    // Own sign-in check: this page never redirects anyone to the dashboard.
+    // Only a signed-out visitor is sent to the login page.
+    const user = await new Promise((resolve) => {
+      const off = onAuthStateChanged(auth, (u) => {
+        off();
+        if (!u) { location.replace('index.html'); return; }
+        resolve(u);
+      });
+    });
+    const isAdmin = (user.email || '').toLowerCase() === (ADMIN_EMAIL || '').toLowerCase();
+    let profile = null;
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) profile = snap.data();
+    } catch (e) { console.error('profile load failed', e); }
+    profile = profile || { fullName: user.displayName || '', email: user.email };
+
+    // Admin viewing Profile Settings: navigation is Admin Panel / Emergency Hotlines / Profile only
+    if (isAdmin) {
+      document.querySelectorAll('header a.tracking-widest').forEach(a => { a.href = 'admin.html'; });
+      document.querySelectorAll('header p').forEach(el => { if (el.textContent.trim() === 'Verified Resident') el.textContent = 'Administrator'; });
+      document.querySelectorAll('main aside nav a[href="dashboard.html"], main aside nav a[href="my-reports.html"]').forEach(el => el.remove());
+      document.querySelector('main aside nav')?.insertAdjacentHTML('afterbegin',
+        '<a href="admin.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>' +
+        '<button type="button" onclick="openHotlinesModal()" class="w-full text-left flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Emergency Hotlines</span></button>');
+
+      const mobileNav = document.querySelector('nav[aria-label="Main navigation"]');
+      if (mobileNav) {
+        mobileNav.classList.replace('grid-cols-5', 'grid-cols-3');
+        mobileNav.innerHTML =
+          '<a href="admin.html" class="bn-item"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>' +
+          '<button type="button" onclick="openHotlinesModal()" class="bn-item"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Hotlines</span></button>' +
+          '<a href="profile.html" class="bn-item active"><i data-lucide="user" class="w-5 h-5"></i><span>Profile</span></a>';
+      }
+
+      // Emergency Hotlines pop-up (same list as the Admin Panel)
+      document.body.insertAdjacentHTML('beforeend', `
+  <!-- MODAL: EMERGENCY HOTLINES -->
+  <div id="hotlines-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-y-auto p-5 shadow-2xl border border-slate-100 space-y-3">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700"><i data-lucide="phone-call" class="w-5 h-5"></i></div>
+          <h3 class="font-bold text-base text-slate-900">Emergency Hotlines</h3>
+        </div>
+        <button type="button" onclick="closeHotlinesModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <ul id="hotline-list" class="space-y-2 text-xs"></ul>
+    </div>
+  </div>
+`);
+    const HOTLINES = [
+      ['National Emergency Hotline','','911','911','e'],
+      ['CDRMMC','','0917-721-8825 / (046) 513-1766','09177218825'],
+      ['Pagamutan ng Dasma','','(046) 481-4400 / 435-0180','0464814400'],
+      ['Dasma CCTV Rescue Center','','(046) 435-0183 / (046) 481-0555','0464350183'],
+      ['Red Cross','','143 / (02) 790-2300','143'],
+      ['Dasma PNP','','(046) 416-2924 / 0956-800-3329','0464162924'],
+      ['City Health Office 1','','(046) 416-0809','0464160809'],
+      ['Dasma Fire Department','','(046) 416-0875 / 0995-336-9534','0464160875'],
+      ['Meralco Hotline','','16211 / (046) 416-1703','16211'],
+      ['Hon. Fernando C. Muli','Punong Barangay','0948-482-3211 / 0956-604-7021','09484823211','p'],
+      ['Hon. Elenita S. Zabala','Kagawad','0905-465-5314','09054655314'],
+      ['Luthgarda V. Mercado','Midwife','0906-712-2956','09067122956'],
+      ['Rubilina R. Rapada','Barangay Health Worker','0918-408-5661','09184085661'],
+      ['Joselito T. De Oro','Chief Tanod','0985-990-6133','09859906133']
+    ];
+    document.getElementById('hotline-list').innerHTML = HOTLINES.map(([name, role, nums, tel, kind]) => {
+      const box = kind === 'e' ? 'bg-red-50/70 border-red-100 hover:border-red-200'
+                : kind === 'p' ? 'bg-caps-50/70 border-caps-100 hover:bg-caps-50'
+                : 'bg-slate-50 border-slate-200/60 hover:bg-caps-50/40';
+      const btn = kind === 'e' ? 'bg-red-600 hover:bg-red-700' : 'bg-caps-600 hover:bg-caps-700';
+      return `<li class="p-2.5 rounded-lg border flex items-center justify-between transition ${box}">
+        <div>
+          <p class="font-bold ${kind === 'e' ? 'text-red-900' : kind === 'p' ? 'text-caps-900' : 'text-slate-800'}">${name}</p>
+          ${role ? `<p class="text-[10px] ${kind === 'p' ? 'text-caps-700 font-semibold uppercase tracking-wider' : 'text-slate-500 font-medium'}">${role}</p>` : ''}
+          <p class="text-[11px] ${kind === 'e' ? 'text-red-700 font-medium' : 'text-slate-500'}">${nums}</p>
+        </div>
+        <a href="tel:${tel}" class="p-1.5 ${btn} text-white rounded-md transition shadow-sm"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
+      </li>`;
+    }).join('');
+      const openHotlinesModal = () => { const m = document.getElementById('hotlines-modal'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons(); };
+      const closeHotlinesModal = () => { const m = document.getElementById('hotlines-modal'); m.classList.add('hidden'); m.classList.remove('flex'); };
+      document.getElementById('hotlines-modal').addEventListener('click', function (e) { if (e.target === this) closeHotlinesModal(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHotlinesModal(); });
+      Object.assign(window, { openHotlinesModal, closeHotlinesModal });
+      lucide.createIcons();
+    }
 
     // Fill missing first / middle / last from the saved full name
     const p = { ...profile };

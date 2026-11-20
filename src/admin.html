@@ -6,93 +6,198 @@
   <title>CAPS Portal - Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { caps: {
+        50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d',950:'#052e16'
+      } } } }
+    }
+  </script>
   <style>
     .bg-caps-primary { background-color: #0E5A36; }
     .text-caps-primary { color: #0E5A36; }
+    @keyframes capsFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes capsPop { from { opacity: 0; scale: .94; translate: 0 8px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+    #logout-modal { animation: capsFadeIn .2s ease both; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+    #logout-modal > div { animation: capsPop .3s cubic-bezier(.22,1,.36,1) both; }
+    #logout-modal button { transition: background-color .2s ease, translate .2s ease, box-shadow .2s ease; }
+    #logout-modal button:hover { translate: 0 -1px; }
+    /* Mobile bottom navigation (same as the feed) */
+    .bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;font-size:10px;font-weight:500;color:#64748b;background:none;border:0;cursor:pointer;transition:color .2s ease,background-color .2s ease}
+    .bn-item:active{background:#f0fdf4}
+    .bn-item.active{color:#15803d;font-weight:700}
+    main aside nav a { transition: background-color .25s ease, color .25s ease, translate .25s ease, box-shadow .25s ease; }
+    main aside nav a:hover { translate: 4px 0; }
+    .bn-item.active::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#15803d,#22c55e)}
   </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col pb-24 lg:pb-0">
 
-  <header class="bg-caps-primary text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div class="flex items-center space-x-3">
-          <div class="p-2 bg-white/10 rounded-xl flex items-center justify-center">
-            <i data-lucide="shield-alert" class="w-6 h-6 text-emerald-200"></i>
-          </div>
-          <div>
-            <div class="flex items-center space-x-2">
-              <h1 class="font-bold text-lg leading-none">CAPS Portal Management</h1>
-              <span class="bg-amber-400 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded">ADMIN</span>
-            </div>
-            <p class="text-[11px] text-emerald-100">Barangay San Antonio De Padua II</p>
-          </div>
+  <!-- TOP NAVIGATION HEADER (same layout as the feed) -->
+  <header class="bg-caps-900 text-white sticky top-0 z-50 shadow-lg border-b border-caps-800">
+    <div class="px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16 gap-4">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-2">
+          <a href="admin.html" class="text-xl font-extrabold tracking-widest text-white">CAPS</a>
+          <span class="bg-amber-400 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded">ADMIN</span>
         </div>
 
-        <div class="flex items-center space-x-2">
-          <div class="relative">
-            <button id="bell-btn" type="button" title="Notifications" class="relative p-2 rounded-xl text-emerald-100 hover:text-white hover:bg-white/10">
+        <!-- Search + Notifications -->
+        <div class="flex flex-1 items-center justify-center gap-2 max-w-xl">
+          <div class="relative w-full hidden md:block">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-caps-300">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="admin-search" oninput="filterReportsBySearch()" placeholder="Search reports, residents, puroks, or status..." class="w-full pl-9 pr-4 py-1.5 bg-caps-950/60 text-white placeholder-caps-300/70 text-sm rounded-lg border border-caps-700/60 focus:outline-none focus:ring-2 focus:ring-caps-500 focus:bg-caps-950/90 transition">
+          </div>
+
+          <div class="relative ml-auto md:ml-0">
+            <button id="bell-btn" onclick="toggleNotifs(event)" title="Notifications" class="relative p-2 rounded-lg text-caps-200 hover:text-white hover:bg-white/10 transition">
               <i data-lucide="bell" class="w-5 h-5"></i>
               <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
             </button>
-            <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 max-w-[90vw] bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50">
-              <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
-                <h4 class="text-xs font-bold text-slate-700">Notifications</h4>
-                <button id="mark-all-read" type="button" class="text-[11px] font-semibold text-emerald-700 hover:underline">Mark all as read</button>
+            <div id="notif-panel" class="hidden fixed inset-0 z-[60] bg-white text-slate-800 md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-80 md:rounded-xl md:shadow-2xl md:border md:border-slate-200 md:overflow-hidden">
+              <div class="flex items-center justify-between px-4 h-16 md:h-auto md:py-2.5 bg-caps-900 text-white md:bg-white md:text-slate-800 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="closeNotifs()" aria-label="Close notifications" class="md:hidden p-1.5 -ml-1.5 rounded-lg hover:bg-white/10"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                  <h4 class="text-base md:text-xs font-bold md:text-slate-700">Notifications</h4>
+                </div>
+                <button onclick="markAllRead()" class="text-xs md:text-[11px] font-semibold text-caps-200 md:text-caps-700 hover:underline">Mark all as read</button>
               </div>
-              <ul id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></ul>
+              <ul id="notif-list" class="h-[calc(100%-4rem)] pb-6 md:pb-0 md:h-auto md:max-h-80 overflow-y-auto divide-y divide-slate-100"></ul>
             </div>
           </div>
-          <button id="logout-btn" class="text-xs bg-emerald-900/60 hover:bg-emerald-900 border border-emerald-700 px-3.5 py-2 rounded-xl flex items-center space-x-1.5">
-          <i data-lucide="log-out" class="w-4 h-4 text-emerald-200"></i>
-          <span>Admin Logout</span>
-        </button>
         </div>
+
+        <!-- User -->
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-full bg-caps-200 text-caps-900 font-bold flex items-center justify-center text-xs shadow-sm" id="user-avatar">AD</div>
+          <div class="hidden lg:block text-left">
+            <p class="text-xs font-semibold leading-tight text-white" id="user-display-name">Administrator</p>
+            <p class="text-[10px] text-caps-200 font-medium">Barangay Admin</p>
+          </div>
+          <button type="button" onclick="openLogoutModal()" title="Log Out" class="flex items-center space-x-1.5 text-white text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Log Out</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <aside class="lg:col-span-3 space-y-4">
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Overview</h3>
-        <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100 text-center">
-          <span class="block text-3xl font-extrabold text-caps-primary" id="total-reports-count">0</span>
-          <span class="text-xs text-emerald-800 font-semibold mt-1 block">Total Submissions</span>
+    <aside class="lg:col-span-3 space-y-4 lg:sticky lg:top-20 lg:self-start">
+      <!-- Navigation (same card as the dashboard) -->
+      <div class="hidden lg:block">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+          <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">Navigation</h3>
+          <nav class="space-y-2">
+            <a href="admin.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-bold bg-caps-100 text-caps-700 nav-active"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>
+            <button type="button" onclick="openHotlinesModal()" class="w-full text-left flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Emergency Hotlines</span></button>
+            <a href="profile.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition"><i data-lucide="user" class="w-5 h-5"></i><span>Profile Settings</span></a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Community Quick Stats (same card as the dashboard) -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Quick Stats</h3>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-caps-50 p-3 rounded-xl border border-caps-100">
+            <span class="block text-2xl font-extrabold text-caps-700" id="active-concerns-count">0</span>
+            <span class="text-[11px] text-caps-800 font-medium">Active Concerns</span>
+          </div>
+          <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-100">
+            <span class="block text-2xl font-extrabold text-emerald-700" id="resolved-concerns-count">0</span>
+            <span class="text-[11px] text-emerald-800 font-medium">Resolved</span>
+          </div>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70 text-center mt-3">
+          <span class="block text-2xl font-extrabold text-slate-700" id="total-reports-count">0</span>
+          <span class="text-[11px] text-slate-600 font-medium">Total Submissions</span>
         </div>
       </div>
     </aside>
 
-    <section class="lg:col-span-9 space-y-4">
+    <section id="reports-section" class="lg:col-span-9 space-y-4 scroll-mt-20">
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-slate-900">Resident Submissions & Action Panel</h2>
-          <p class="text-xs text-slate-500">Update report progress, moderate comments, or delete entries.</p>
+          <h2 class="text-lg font-bold text-slate-900">Report History</h2>
+          <p class="text-xs text-slate-500">Every resident report, newest first, with the reporter, date and time, status, upvotes and comments.</p>
         </div>
       </div>
 
+      <div id="status-filters" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
       <div id="admin-reports-list" class="space-y-4"></div>
     </section>
   </main>
 
+  <!-- MOBILE BOTTOM NAVIGATION (identical on every page) -->
+  <nav aria-label="Main navigation" class="fixed bottom-0 inset-x-0 z-40 lg:hidden grid grid-cols-3 bg-white border-t border-slate-200 shadow-[0_-6px_18px_-10px_rgba(0,0,0,.25)]" style="height:calc(4rem + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)">
+    <a href="admin.html" class="bn-item active"><i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>
+    <button type="button" onclick="openHotlinesModal()" class="bn-item"><i data-lucide="phone-call" class="w-5 h-5"></i><span>Hotlines</span></button>
+    <a href="profile.html" class="bn-item"><i data-lucide="user" class="w-5 h-5"></i><span>Profile</span></a>
+  </nav>
+
+  <!-- MODAL: EMERGENCY HOTLINES -->
+  <div id="hotlines-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-y-auto p-5 shadow-2xl border border-slate-100 space-y-3">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="p-1.5 bg-caps-100 rounded-lg text-caps-700"><i data-lucide="phone-call" class="w-5 h-5"></i></div>
+          <h3 class="font-bold text-base text-slate-900">Emergency Hotlines</h3>
+        </div>
+        <button type="button" onclick="closeHotlinesModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <ul id="hotline-list" class="space-y-2 text-xs"></ul>
+    </div>
+  </div>
+
+  <!-- LOGOUT CONFIRMATION MODAL -->
+  <div id="logout-modal" class="hidden fixed inset-0 z-[70] items-center justify-center bg-slate-900/50 px-4" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm p-6">
+      <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-3"><i data-lucide="log-out" class="w-5 h-5"></i></div>
+      <h3 id="logout-title" class="text-base font-bold text-slate-900">Are you sure you want to log out?</h3>
+      <p class="text-xs text-slate-500 mt-1">You will need to sign in again to access the admin panel.</p>
+      <div class="flex justify-end space-x-2 mt-5">
+        <button type="button" onclick="closeLogoutModal()" class="px-4 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition">No</button>
+        <button type="button" onclick="confirmLogout()" class="px-4 py-2.5 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Yes</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { db } from "./firebase-config.js";
     import {
-      esc, fmtDate, fmtDateTime, ms, docData, statusSteps, statusStyle,
+      esc, initialsOf, toDate, fmtDate, fmtDateTime, ms, docData, statusSteps, statusStyle,
       requireUser, logout, notify, listenNotifications, markNotifRead, markAllNotifsRead,
-      notifListHTML, toast, mediaHTML, hydrateMedia, deleteReportMedia
-    } from "./caps-common.js";
+      notifListHTML, toast, mediaHTML, hydrateMedia, deleteReportMedia, compressImage
+    } from "./caps-common.js?v=20261120";
     import {
-      collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch
+      collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    await requireUser({ admin: true });   // non-admins are sent away
+    const { user, profile } = await requireUser({ admin: true });   // non-admins are sent away
+    const me = user.uid;
+    const myName = profile.fullName || user.displayName || 'Administrator';
+    const myInitials = initialsOf(myName);
+    {
+      const adminName = profile.fullName || 'Administrator';
+      document.getElementById('user-display-name').textContent = adminName;
+      document.getElementById('user-avatar').textContent = initialsOf(adminName) === '?' ? 'AD' : initialsOf(adminName);
+    }
 
     const container = document.getElementById('admin-reports-list');
     let reports = [];
     let commentsBy = {};
     let notifs = [];
-    const openComments = new Set();
+    const collapsedComments = new Set();   // comments are shown by default
+    let usersBy = {};                      // uid -> profile (admin may read all users)
+    const nameOf = (uid, fallback) => (usersBy[uid] && usersBy[uid].fullName) || fallback || 'Resident';
+    const fmtFull = (ts) => (toDate(ts) || new Date()).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 
     // ---------- Notifications (new reports appear here) ----------
     function renderNotifs() {
@@ -105,22 +210,21 @@
     }
     listenNotifications('admin', (items) => { notifs = items; renderNotifs(); }, (n) => toast(n.text));
 
-    document.getElementById('bell-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('notif-panel').classList.toggle('hidden');
-    });
+    function toggleNotifs(e) { e.stopPropagation(); const p = document.getElementById('notif-panel'); p.classList.toggle('hidden'); document.body.classList.toggle('overflow-hidden', !p.classList.contains('hidden') && window.innerWidth < 768); }
+    function closeNotifs() { document.getElementById('notif-panel').classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
     document.addEventListener('click', (e) => {
-      const p = document.getElementById('notif-panel');
-      if (!p.contains(e.target)) p.classList.add('hidden');
+      if (!document.getElementById('notif-panel').contains(e.target)) closeNotifs();
     });
-    document.getElementById('mark-all-read').addEventListener('click', () => markAllNotifsRead(notifs).catch(console.error));
+    function markAllRead() { markAllNotifsRead(notifs).catch(console.error); }
 
-    window.openNotif = (id) => {
+    function openNotif(id) {
       const n = notifs.find(x => x.id === id);
       if (!n) return;
       if (!n.read) markNotifRead(id).catch(console.error);
-      document.getElementById('notif-panel').classList.add('hidden');
-      if (n.type === 'comment') openComments.add(n.reportId);
+      closeNotifs();
+      statusFilter = 'all';
+      document.getElementById('admin-search').value = '';
+      collapsedComments.delete(n.reportId);
       renderAdminReports();
       const el = document.getElementById('rep-' + n.reportId);
       if (el) {
@@ -128,7 +232,89 @@
         el.classList.add('ring-2', 'ring-emerald-500');
         setTimeout(() => el.classList.remove('ring-2', 'ring-emerald-500'), 2000);
       }
-    };
+    }
+
+    const HOTLINES = [
+      ['National Emergency Hotline','','911','911','e'],
+      ['CDRMMC','','0917-721-8825 / (046) 513-1766','09177218825'],
+      ['Pagamutan ng Dasma','','(046) 481-4400 / 435-0180','0464814400'],
+      ['Dasma CCTV Rescue Center','','(046) 435-0183 / (046) 481-0555','0464350183'],
+      ['Red Cross','','143 / (02) 790-2300','143'],
+      ['Dasma PNP','','(046) 416-2924 / 0956-800-3329','0464162924'],
+      ['City Health Office 1','','(046) 416-0809','0464160809'],
+      ['Dasma Fire Department','','(046) 416-0875 / 0995-336-9534','0464160875'],
+      ['Meralco Hotline','','16211 / (046) 416-1703','16211'],
+      ['Hon. Fernando C. Muli','Punong Barangay','0948-482-3211 / 0956-604-7021','09484823211','p'],
+      ['Hon. Elenita S. Zabala','Kagawad','0905-465-5314','09054655314'],
+      ['Luthgarda V. Mercado','Midwife','0906-712-2956','09067122956'],
+      ['Rubilina R. Rapada','Barangay Health Worker','0918-408-5661','09184085661'],
+      ['Joselito T. De Oro','Chief Tanod','0985-990-6133','09859906133']
+    ];
+    document.getElementById('hotline-list').innerHTML = HOTLINES.map(([name, role, nums, tel, kind]) => {
+      const box = kind === 'e' ? 'bg-red-50/70 border-red-100 hover:border-red-200'
+                : kind === 'p' ? 'bg-caps-50/70 border-caps-100 hover:bg-caps-50'
+                : 'bg-slate-50 border-slate-200/60 hover:bg-caps-50/40';
+      const btn = kind === 'e' ? 'bg-red-600 hover:bg-red-700' : 'bg-caps-600 hover:bg-caps-700';
+      return `<li class="p-2.5 rounded-lg border flex items-center justify-between transition ${box}">
+        <div>
+          <p class="font-bold ${kind === 'e' ? 'text-red-900' : kind === 'p' ? 'text-caps-900' : 'text-slate-800'}">${name}</p>
+          ${role ? `<p class="text-[10px] ${kind === 'p' ? 'text-caps-700 font-semibold uppercase tracking-wider' : 'text-slate-500 font-medium'}">${role}</p>` : ''}
+          <p class="text-[11px] ${kind === 'e' ? 'text-red-700 font-medium' : 'text-slate-500'}">${nums}</p>
+        </div>
+        <a href="tel:${tel}" class="p-1.5 ${btn} text-white rounded-md transition shadow-sm"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
+      </li>`;
+    }).join('');
+
+    function openHotlinesModal() { const m = document.getElementById('hotlines-modal'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons(); }
+    function closeHotlinesModal() { const m = document.getElementById('hotlines-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    document.getElementById('hotlines-modal').addEventListener('click', function (e) { if (e.target === this) closeHotlinesModal(); });
+
+    // ---------- Status filter chips ----------
+    const NAV = [
+      { key: 'all',          label: 'All Reports' },
+      { key: 'Pending',      label: 'Pending' },
+      { key: 'Under Review', label: 'Under Review' },
+      { key: 'In Progress',  label: 'In Progress' },
+      { key: 'Resolved',     label: 'Resolved' }
+    ];
+    let statusFilter = 'all';
+
+    function renderNav() {
+      const counts = { all: reports.length };
+      statusSteps.forEach(s => { counts[s] = reports.filter(r => (r.status || 'Pending') === s).length; });
+      document.getElementById('status-filters').innerHTML = NAV.map(n => {
+        const on = statusFilter === n.key;
+        const tone = n.key === 'all' ? 'bg-white text-slate-700 border-slate-200' : (statusStyle[n.key] || '');
+        return `<button type="button" data-filter="${n.key}" class="${n.key === 'all' ? 'col-span-2 sm:col-span-1 ' : ''}rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm ${tone} ${on ? 'ring-2 ring-caps-600' : ''}">
+          <span class="block text-xl font-extrabold leading-none">${counts[n.key]}</span>
+          <span class="block text-[11px] font-semibold mt-1">${n.label}</span></button>`;
+      }).join('');
+    }
+
+    document.addEventListener('click', (e) => {
+      const f = e.target.closest('[data-filter]');
+      if (!f) return;
+      statusFilter = f.dataset.filter;
+      renderAdminReports();
+    });
+
+    // ---------- Navigation helpers ----------
+    function filterReportsBySearch() { renderAdminReports(); }
+
+    // ---------- Logout confirmation (same as the feed) ----------
+    function openLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeLogoutModal() { const m = document.getElementById('logout-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function confirmLogout() { logout(); }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLogoutModal(); closeNotifs(); closeHotlinesModal(); } });
+    document.getElementById('logout-modal').addEventListener('click', function (e) { if (e.target === this) closeLogoutModal(); });
+
+    // inline onclick="" handlers need these on window (the script is a module)
+    Object.assign(window, {
+      toggleNotifs, closeNotifs, markAllRead, openNotif,
+      filterReportsBySearch,
+      openLogoutModal, closeLogoutModal, confirmLogout,
+      openHotlinesModal, closeHotlinesModal
+    });
 
     // ---------- Reports + comments (live) ----------
     onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
@@ -145,8 +331,18 @@
       renderAdminReports();
     }, (err) => console.error('comments listener', err));
 
+    onSnapshot(collection(db, 'users'), (snap) => {
+      usersBy = {};
+      snap.docs.forEach(d => { usersBy[d.id] = d.data(); });
+      renderAdminReports();
+    }, (err) => console.error('users listener', err));
+
     function renderAdminReports() {
       document.getElementById('total-reports-count').innerText = reports.length;
+      document.getElementById('active-concerns-count').innerText = reports.filter(r => (r.status || 'Pending') !== 'Resolved').length;
+      document.getElementById('resolved-concerns-count').innerText = reports.filter(r => r.status === 'Resolved').length;
+      renderNav();
+      lucide.createIcons();
 
       if (reports.length === 0) {
         container.innerHTML = `
@@ -156,60 +352,88 @@
         return;
       }
 
-      container.innerHTML = reports.map(rep => {
+      const q = (document.getElementById('admin-search')?.value || '').trim().toLowerCase();
+      let shown = statusFilter === 'all' ? reports : reports.filter(r => (r.status || 'Pending') === statusFilter);
+      if (q) shown = shown.filter(r => [r.title, r.description, r.category, r.purok, nameOf(r.authorId, r.authorName), r.status].join(' ').toLowerCase().includes(q));
+
+      if (shown.length === 0) {
+        const what = statusFilter === 'all' ? 'reports' : `"${statusFilter}" reports`;
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center space-y-2">
+            <p class="font-bold text-slate-700 text-sm">${q ? `No ${what} match your search` : `No ${what} right now`}</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = shown.map(rep => {
         const currentStatus = rep.status || 'Pending';
         const comments = commentsBy[rep.id] || [];
-        const open = openComments.has(rep.id);
+        const open = !collapsedComments.has(rep.id);
+        const name = nameOf(rep.authorId, rep.authorName);
+        const upv = rep.upvoters || [];
+        const upNames = upv.slice(0, 10).map(uid => esc(nameOf(uid, uid === rep.authorId ? rep.authorName : ''))).join(', ');
+        const upMore = upv.length > 10 ? ` and ${upv.length - 10} more` : '';
         return `
           <div id="rep-${esc(rep.id)}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 transition">
             <div class="flex justify-between items-start gap-3">
               <div class="min-w-0">
                 <span class="text-[10px] font-bold text-caps-primary bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase inline-block">${esc(rep.category)}</span>
                 <h3 class="font-bold text-slate-900 text-base mt-2 break-words">${esc(rep.title)}</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Submitted by: <strong>${esc(rep.authorName || 'Resident')}</strong> • ${esc(rep.purok)} • ${esc(fmtDate(rep.createdAt))}</p>
               </div>
               <span class="px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${statusStyle[currentStatus] || statusStyle.Pending}">${esc(currentStatus)}</span>
+            </div>
+
+            <div class="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+              <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center justify-center shrink-0">${esc(initialsOf(name))}</div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reported by</p>
+                <p class="text-sm font-bold text-slate-900 leading-tight break-words">${esc(name)}</p>
+                <p class="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                  <span class="inline-flex items-center gap-1"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${esc(fmtFull(rep.createdAt))}</span>
+                  <span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${esc(rep.purok)}</span>
+                </p>
+              </div>
             </div>
 
             <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">${esc(rep.description)}</p>
             ${mediaHTML(rep)}
 
             <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-              <div class="flex items-center gap-4">
-                <div class="flex items-center space-x-2">
-                  <span class="text-xs font-bold text-slate-700">Update Status:</span>
-                  <select data-status="${esc(rep.id)}" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 font-semibold cursor-pointer">
-                    ${statusSteps.map(s => `<option value="${s}" ${currentStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
-                  </select>
-                </div>
-                <span class="flex items-center gap-1.5 text-xs text-slate-500 font-medium"><i data-lucide="thumbs-up" class="w-4 h-4"></i>${(rep.upvoters || []).length}</span>
-                <button data-toggle-comments="${esc(rep.id)}" class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition ${open ? 'text-emerald-800 bg-emerald-50' : 'text-slate-500'}">
-                  <i data-lucide="message-circle" class="w-4 h-4"></i><span>Comments (${comments.length})</span>
-                </button>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold text-slate-700">Update Status:</span>
+                <select data-status="${esc(rep.id)}" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 font-semibold cursor-pointer">
+                  ${statusSteps.map(s => `<option value="${s}" ${currentStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
               </div>
-
               <button data-delete="${esc(rep.id)}" class="text-xs text-red-600 font-semibold flex items-center space-x-1 px-3 py-1.5 rounded-xl hover:bg-red-50">
                 <i data-lucide="trash-2" class="w-4 h-4"></i><span>Delete Submission</span>
               </button>
             </div>
 
-            ${open ? `
+            <div class="flex items-start gap-2 text-xs text-slate-600">
+              <i data-lucide="thumbs-up" class="w-4 h-4 mt-0.5 text-caps-700 shrink-0"></i>
+              <p class="min-w-0 break-words"><span class="font-bold text-slate-800">${upv.length} upvote${upv.length === 1 ? '' : 's'}</span>${upv.length ? ` <span class="text-slate-500">· ${upNames}${upMore}</span>` : ''}</p>
+            </div>
+
             <div class="pt-3 border-t border-slate-100 space-y-3">
-              ${comments.length ? comments.map(c => `
+              <button type="button" data-toggle-comments="${esc(rep.id)}" class="flex items-center gap-1.5 text-xs font-bold ${open ? 'text-emerald-800' : 'text-slate-600'}">
+                <i data-lucide="message-circle" class="w-4 h-4"></i><span>Comments (${comments.length})</span><i data-lucide="${open ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4"></i>
+              </button>
+              ${open ? (comments.length ? comments.map(c => `
                 <div class="flex gap-2.5">
-                  <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[10px] flex items-center justify-center shrink-0">${esc(c.authorInitials)}</div>
+                  <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[10px] flex items-center justify-center shrink-0">${esc(c.authorInitials || initialsOf(nameOf(c.authorId, c.authorName)))}</div>
                   <div class="min-w-0 flex-1">
                     <div class="bg-slate-50 border border-slate-200/70 rounded-2xl px-3 py-2">
-                      <span class="text-xs font-bold text-slate-900">${esc(c.authorName)}</span>
+                      <span class="text-xs font-bold text-slate-900">${esc(nameOf(c.authorId, c.authorName))}</span>
                       <p class="text-xs text-slate-700 mt-0.5 break-words">${esc(c.text)}</p>
                     </div>
                     <div class="flex items-center gap-3 px-2 mt-0.5 text-[10px] text-slate-400">
-                      <span>${esc(fmtDateTime(c.createdAt))}</span>
+                      <span>${esc(fmtFull(c.createdAt))}</span>
                       <button data-delete-comment="${esc(c.id)}" class="hover:text-red-600 font-semibold">Delete comment</button>
                     </div>
                   </div>
-                </div>`).join('') : '<p class="text-[11px] text-slate-400">No comments on this report.</p>'}
-            </div>` : ''}
+                </div>`).join('') : '<p class="text-[11px] text-slate-400">No comments on this report.</p>') : ''}
+            </div>
           </div>`;
       }).join('');
 
@@ -244,7 +468,7 @@
       const tg = e.target.closest('button[data-toggle-comments]');
       if (tg) {
         const id = tg.dataset.toggleComments;
-        openComments.has(id) ? openComments.delete(id) : openComments.add(id);
+        collapsedComments.has(id) ? collapsedComments.delete(id) : collapsedComments.add(id);
         renderAdminReports();
         return;
       }
@@ -271,7 +495,6 @@
       }
     });
 
-    document.getElementById('logout-btn').addEventListener('click', logout);
     lucide.createIcons();
   </script>
 </body>

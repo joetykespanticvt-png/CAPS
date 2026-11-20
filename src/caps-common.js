@@ -43,7 +43,7 @@ export function requireUser({ admin = false } = {}) {
       started = true;
       const isAdmin = (user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
       if (admin && !isAdmin) { location.replace('dashboard.html'); return; }
-      if (!admin && isAdmin) { location.replace('admin.html'); return; }
+      // Admins may also open the resident pages (Feed, My Reports, Profile); only the admin page is admin-only.
 
       let profile = null;
       try {
@@ -61,9 +61,34 @@ export function requireUser({ admin = false } = {}) {
         }
       } catch (e) { console.error('profile load failed', e); }
       profile = profile || { fullName: user.displayName || '', email: user.email };
+      if (isAdmin && !admin) adminShortcuts();
       resolve({ user, profile, isAdmin });
     });
   });
+}
+
+// When the admin is on a resident page: add an "Admin Panel" link (sidebar + ADMIN badge next to the logo)
+function adminShortcuts() {
+  try {
+    const brand = document.querySelector('header a.tracking-widest');
+    if (brand) {
+      brand.href = 'admin.html';
+      const badge = document.createElement('a');
+      badge.href = 'admin.html';
+      badge.title = 'Back to Admin Panel';
+      badge.className = 'ml-2 align-middle bg-amber-400 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded hover:bg-amber-300 transition';
+      badge.textContent = 'ADMIN';
+      brand.insertAdjacentElement('afterend', badge);
+    }
+    const nav = document.querySelector('main aside nav');
+    if (nav) {
+      nav.insertAdjacentHTML('afterbegin',
+        '<a href="admin.html" class="flex items-center space-x-3.5 px-4 py-3.5 text-base rounded-xl font-semibold text-slate-600 hover:bg-slate-50 hover:text-caps-700 transition">' +
+        '<i data-lucide="shield-alert" class="w-5 h-5"></i><span>Admin Panel</span></a>');
+    }
+    document.querySelectorAll('header p').forEach(p => { if (p.textContent.trim() === 'Verified Resident') p.textContent = 'Administrator'; });
+    if (window.lucide) window.lucide.createIcons();
+  } catch (e) { console.error('admin shortcuts', e); }
 }
 
 export async function logout() {
