@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Admin = the account registered with this email
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == 'adminsapd2@gmail.com';
+    }
+
+    // ---------- User profiles ----------
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Role is forced: 'admin' only for the admin email, 'resident' for everyone else.
+      allow create: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.role == (isAdmin() ? 'admin' : 'resident');
+
+      // Own profile only; role and email can never be changed here.
+      allow update: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+    }
+
+    // ---------- Reports (everyone signed in can see the community feed) ----------
+    match /reports/{reportId} {
+      allow read: if signedIn();
+
+      // Residents post as themselves; every report starts Pending with the author's own upvote.
+      allow create: if signedIn()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.status == 'Pending'
+                    && request.resource.data.upvoters == [request.auth.uid];
+
+      allow update: if signedIn() && (
+        // Admin: may change ONLY the status
+        ( isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status in ['Pending', 'Under Review', 'In Progress', 'Resolved'] )
+        ||
+        // Anyone: may add or remove ONLY their own upvote
+        ( request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvoters'])
+          && ( ( request.resource.data.upvoters.toSet().difference(resource.data.upvoters.toSet()) == [request.auth.uid].toSet()
+                 && resource.data.upvoters.toSet().difference(request.resource.data.upvoters.toSet()).size() == 0 )
+            || ( resource.data.upvoters.toSet().difference(request.resource.data.upvoters.toSet()) == [request.auth.uid].toSet()
+                 && request.resource.data.upvoters.toSet().difference(resource.data.upvoters.toSet()).size() == 0 ) ) )
+      );
+
+      // Author deletes their own report, admin deletes any
+      allow delete: if signedIn() && (isAdmin() || resource.data.authorId == request.auth.uid);
+
+      // Photos of a report
+      match /media/{mediaId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+                      && request.resource.data.authorId == request.auth.uid
+                      && request.resource.data.data.size() < 800000
+                      && get(/databases/$(database)/documents/reports/$(reportId)).data.authorId == request.auth.uid;
+        allow update: if false;
+        allow delete: if signedIn() && (isAdmin()
+                      || get(/databases/$(database)/documents/reports/$(reportId)).data.authorId == request.auth.uid);
+      }
+    }
+
+    // ---------- Comments ----------
+    match /comments/{commentId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 500;
+      allow update: if false;
+      // Users delete only their own comment, admin deletes any
+      allow delete: if signedIn() && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    // ---------- Notifications ----------
+    // toUid = a resident's uid, or the word 'admin' for the admin inbox
+    match /notifications/{notifId} {
+      function isRecipient() {
+        return signedIn() && (resource.data.toUid == request.auth.uid
+                              || (resource.data.toUid == 'admin' && isAdmin()));
+      }
+      allow read: if isRecipient();
+      allow create: if signedIn()
+                    && request.resource.data.fromUid == request.auth.uid
+                    && request.resource.data.read == false;
+      allow update: if isRecipient()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isRecipient() || (signedIn() && resource.data.fromUid == request.auth.uid);
+    }
+  }
+}

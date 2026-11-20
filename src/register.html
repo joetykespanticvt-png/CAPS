@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPS - Register</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f8f7;
+      color: #152536;
+    }
+
+    :root {
+      --caps-dark: #004b2d;
+      --caps-primary: #006239;
+      --caps-green: #0e8b4c;
+      --caps-light: #d5f2e4;
+    }
+
+    /* HEADER */
+
+    .top-header {
+      height: 82px;
+      width: 100%;
+      background: linear-gradient(100deg, #00452a, #005b35);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 4% !important;
+      margin: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .brand h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: white;
+      margin: 0;
+      padding: 0;
+      letter-spacing: -1px;
+    }
+
+    /* MAIN BACKGROUND */
+
+    .main-area {
+      position: relative;
+      min-height: calc(100vh - 150px);
+      padding: 38px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+
+      background:
+        radial-gradient(ellipse at 0% 0%, #bce9d5 0%, transparent 30%),
+        radial-gradient(ellipse at 100% 85%, #c8eadb 0%, transparent 30%),
+        #f8fafb;
+    }
+
+    .main-area::before {
+      content: "";
+      position: absolute;
+      width: 125%;
+      height: 500px;
+      left: -15%;
+      top: -350px;
+      border-radius: 50%;
+      border: 45px solid rgba(0, 135, 76, .12);
+      transform: rotate(-12deg);
+    }
+
+    .main-area::after {
+      content: "";
+      position: absolute;
+      width: 130%;
+      height: 450px;
+      right: -55%;
+      bottom: 110px;
+      border-radius: 50%;
+      border: 50px solid rgba(0, 126, 68, .8);
+      transform: rotate(-17deg);
+      pointer-events: none;
+    }
+
+    /* REGISTRATION CARD */
+
+    .register-card {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1125px;
+      min-height: 680px;
+      display: grid;
+      grid-template-columns: 40% 60%;
+      background: white;
+      border: 1px solid #dce4e8;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0, 45, 28, .17);
+    }
+
+    /* LEFT PANEL */
+
+    .left-panel {
+      position: relative;
+      overflow: hidden;
+
+      background:
+        radial-gradient(circle at 90% 20%, #08783e 0%, transparent 40%),
+        linear-gradient(145deg, #00603a, #003e28 75%);
+
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 45px 35px;
+    }
+
+    .left-panel::before {
+      content: "";
+      position: absolute;
+      width: 150%;
+      height: 300px;
+      top: -190px;
+      left: -30%;
+      background: rgba(0, 130, 65, .35);
+      border-radius: 50%;
+      transform: rotate(-20deg);
+    }
+
+    .left-panel::after {
+      content: "";
+      position: absolute;
+      width: 150%;
+      height: 125px;
+      bottom: -45px;
+      left: -20%;
+      background: linear-gradient(90deg, #48c83c, #087e40);
+      border-radius: 50%;
+      transform: rotate(9deg);
+      box-shadow: 0 -25px 0 rgba(99, 220, 66, .65);
+    }
+
+    .left-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .community-logo {
+      width: 125px;
+      height: 125px;
+      margin: 0 auto 10px;
+      color: white;
+    }
+
+    .portal-name {
+      font-size: 50px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+    }
+
+    .green-line {
+      width: 200px;
+      height: 3px;
+      background: #5edb4c;
+      margin: 0 auto 30px;
+    }
+
+    .left-panel h2 {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 25px;
+      letter-spacing: -.8px;
+    }
+
+    .left-panel h2 span {
+      color: #78e66c;
+    }
+
+    .left-panel p {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #e2f6eb;
+      max-width: 350px;
+      margin: auto;
+    }
+
+    /* RIGHT PANEL */
+
+    .right-panel {
+      padding: 38px 48px 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: rgba(255,255,255,.97);
+    }
+
+    .form-heading {
+      margin-bottom: 22px;
+    }
+
+    .form-heading h2 {
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.2;
+      letter-spacing: -.5px;
+      color: #152536;
+      margin: 0 0 7px;
+    }
+
+    .form-heading p {
+      font-size: 16px;
+      color: #64748b;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* FORM */
+
+    .register-form {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      width: 100%;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #172333;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper > i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 19px;
+      height: 19px;
+      color: #7b8ba0;
+      pointer-events: none;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      height: 42px;
+      padding: 10px 42px 10px 46px;
+      border: 1px solid #dce3e9;
+      border-radius: 12px;
+      background: #fbfcfd;
+      font-size: 14px;
+      color: #1e293b;
+      outline: none;
+      transition: .2s;
+    }
+
+    .input-wrapper input:focus {
+      border-color: #0e8b4c;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(14,139,76,.1);
+    }
+
+    .input-wrapper input::placeholder {
+      color: #7c8ba0;
+      text-transform: none;
+    }
+
+    /* PASSWORD TOGGLE */
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #7b8ba0;
+      cursor: pointer;
+      padding: 3px;
+    }
+
+    .password-toggle i {
+      width: 18px;
+      height: 18px;
+    }
+
+    .field-note {
+      font-size: 12px;
+      color: #8492a6;
+      margin-top: 5px;
+    }
+
+    /* TERMS */
+
+    .terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 13px;
+      color: #263342;
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+
+    .terms input {
+      width: 17px;
+      height: 17px;
+      accent-color: #006239;
+      flex-shrink: 0;
+      margin-top: 1px;
+      cursor: pointer;
+    }
+
+    .terms a {
+      color: #006239;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .terms a:hover {
+      text-decoration: underline;
+    }
+
+    /* CREATE ACCOUNT BUTTON */
+
+    .create-btn {
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(90deg, #005633, #004a2b);
+      color: white;
+      border: none;
+      border-radius: 11px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+
+      box-shadow: 0 4px 10px rgba(0,70,40,.18);
+      transition: .3s;
+    }
+
+    .create-btn:hover {
+      background: #00723d;
+      transform: translateY(-1px);
+    }
+
+    .create-btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* SECURITY NOTE */
+
+    .security-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: #8190a4;
+      font-size: 12px;
+      margin-top: 15px;
+    }
+
+    .security-note i {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* SIGN IN BELOW FORM */
+
+    .signin-bottom {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .signin-bottom a {
+      color: #006239;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .signin-bottom a:hover {
+      text-decoration: underline;
+    }
+
+    /* FOOTER */
+
+    .bottom-footer {
+      min-height: 68px;
+      background: linear-gradient(90deg, #004b2d, #005735);
+      color: white;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 12px 4%;
+      gap: 15px;
+    }
+
+    .footer-community {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .footer-community i {
+      width: 40px;
+      height: 40px;
+      color: #6be3a6;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      font-size: 12px;
+    }
+
+    .footer-links a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVE TABLET */
+
+    @media (max-width: 900px) {
+
+      .main-area {
+        padding: 30px 15px;
+      }
+
+      .register-card {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+      }
+
+      .left-panel {
+        min-height: 320px;
+        padding: 30px 20px;
+      }
+
+      .community-logo {
+        width: 85px;
+        height: 85px;
+      }
+
+      .portal-name {
+        font-size: 35px;
+      }
+
+      .left-panel h2 {
+        font-size: 25px;
+        margin-bottom: 12px;
+      }
+
+      .left-panel p {
+        font-size: 14px;
+      }
+
+      .right-panel {
+        padding: 35px 30px;
+      }
+    }
+
+    /* RESPONSIVE MOBILE */
+
+    @media (max-width: 600px) {
+
+      .top-header {
+        height: 65px;
+        padding: 0 20px !important;
+      }
+
+      .brand h1 {
+        font-size: 25px;
+      }
+
+      .main-area {
+        padding: 20px 12px;
+      }
+
+      .register-card {
+        border-radius: 18px;
+      }
+
+      .left-panel {
+        min-height: 280px;
+      }
+
+      .right-panel {
+        padding: 25px 20px;
+      }
+
+      .form-heading h2 {
+        font-size: 26px;
+      }
+
+      .form-heading p {
+        font-size: 13px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .register-form {
+        gap: 12px;
+      }
+
+      .bottom-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 18px 10px;
+      }
+
+      .footer-community {
+        justify-content: center;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+
+  <header class="top-header">
+
+    <div class="brand">
+      <h1>CAPS</h1>
+    </div>
+
+  </header>
+
+  <!-- MAIN AREA -->
+
+  <main class="main-area">
+
+    <div class="register-card">
+
+      <!-- LEFT PANEL -->
+
+      <section class="left-panel">
+
+        <div class="left-content">
+
+          <div class="portal-name">
+            CAPS Portal
+          </div>
+
+          <div class="green-line"></div>
+
+          <h2>
+            A closer community.<br>
+            A simpler <span>everyday.</span>
+          </h2>
+
+          <p>
+            A shared space for the residents of
+            Barangay San Antonio De Padua II to
+            stay informed and connected.
+          </p>
+
+        </div>
+
+      </section>
+
+      <!-- RIGHT PANEL -->
+
+      <section class="right-panel">
+
+        <div class="form-heading">
+
+          <h2>Create your resident account.</h2>
+
+          <p>
+            For residents of Barangay San Antonio De Padua II.
+            A few details are all you need to get started.
+          </p>
+
+        </div>
+
+        <!-- REGISTRATION FORM -->
+
+        <form id="register-form" class="register-form">
+
+          <!-- FIRST NAME AND LAST NAME -->
+
+          <div class="form-grid">
+
+            <div class="form-group">
+
+              <label for="reg-firstname">First name</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="text"
+                  id="reg-firstname"
+                  required
+                  placeholder="First name"
+                >
+
+              </div>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="reg-lastname">Last name</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="text"
+                  id="reg-lastname"
+                  required
+                  placeholder="Last name"
+                >
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- EMAIL AND MOBILE -->
+
+          <div class="form-grid">
+
+            <div class="form-group">
+
+              <label for="reg-email">Email address</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="email"
+                  id="reg-email"
+                  required
+                  placeholder="Enter your email"
+                >
+
+              </div>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="reg-phone">Mobile number</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="tel"
+                  id="reg-phone"
+                  required
+                  placeholder="Mobile no."
+                >
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ADDRESS -->
+
+          <div class="form-group">
+
+            <label for="reg-address">Residential address</label>
+
+            <div class="input-wrapper">
+
+              <input
+                type="text"
+                id="reg-address"
+                required
+                placeholder="Enter your address"
+              >
+
+            </div>
+
+            <p class="field-note">
+              Your address within Barangay San Antonio De Padua II.
+            </p>
+
+          </div>
+
+          <!-- PASSWORDS -->
+
+          <div class="form-grid">
+
+            <div class="form-group">
+
+              <label for="reg-pass">Password</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="password"
+                  id="reg-pass"
+                  required
+                  minlength="6"
+                  placeholder="Create a password"
+                >
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  onclick="togglePassword('reg-pass', this)"
+                  aria-label="Show password"
+                >
+                  <i data-lucide="eye"></i>
+                </button>
+
+              </div>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="reg-confirm-pass">Confirm password</label>
+
+              <div class="input-wrapper">
+
+                <input
+                  type="password"
+                  id="reg-confirm-pass"
+                  required
+                  minlength="6"
+                  placeholder="Re-enter password"
+                >
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  onclick="togglePassword('reg-confirm-pass', this)"
+                  aria-label="Show password"
+                >
+                  <i data-lucide="eye"></i>
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <p class="field-note">
+            Use at least 6 characters for your password.
+          </p>
+
+          <!-- TERMS AND CONDITIONS -->
+
+          <div class="terms">
+
+            <input
+              type="checkbox"
+              id="reg-terms"
+              required
+            >
+
+            <label for="reg-terms">
+
+              I agree to the
+
+              <a href="terms.html">Terms of use</a>.
+
+            </label>
+
+          </div>
+
+          <!-- CREATE ACCOUNT BUTTON -->
+
+          <button
+            type="submit"
+            class="create-btn"
+            id="create-btn"
+          >
+
+            <span>Create account</span>
+
+            <i data-lucide="arrow-right"></i>
+
+          </button>
+
+        </form>
+
+        <!-- SECURITY NOTE -->
+
+        <div class="security-note">
+
+          <span>Your information is safe with us.</span>
+
+        </div>
+
+        <!-- SIGN IN BELOW SECURITY NOTE -->
+
+        <div class="signin-bottom">
+
+          <span>Already have an account?</span>
+
+          <a href="login.html">Sign in</a>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+
+  <footer class="bottom-footer">
+
+    <div class="footer-community">
+
+      <span>
+        <strong>One neighborhood. Many connections.</strong><br>
+        Built around the people who call it home.
+      </span>
+
+    </div>
+
+    <div class="footer-copy">
+      © 2026 CAPS Portal. All rights reserved.
+    </div>
+
+  </footer>
+
+  <!-- ICONS + PASSWORD TOGGLE -->
+  <script>
+    lucide.createIcons();
+
+    window.togglePassword = function(inputId, button) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = '<i data-lucide="eye-off"></i>';
+      } else {
+        input.type = 'password';
+        button.innerHTML = '<i data-lucide="eye"></i>';
+      }
+      lucide.createIcons();
+    };
+  </script>
+
+  <!-- FIREBASE REGISTRATION SCRIPT -->
+  <script type="module">
+    import { auth, db, ADMIN_EMAIL, friendlyAuthError } from "./firebase-config.js";
+    import {
+      createUserWithEmailAndPassword, updateProfile, signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const fname = document.getElementById('reg-firstname').value.trim();
+      const lname = document.getElementById('reg-lastname').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const mobile = document.getElementById('reg-phone').value.trim();
+      const address = document.getElementById('reg-address').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      const confirmPassword = document.getElementById('reg-confirm-pass').value;
+      const agree = document.getElementById('reg-terms').checked;
+
+      if (password !== confirmPassword) { alert('Passwords do not match!'); return; }
+      if (password.length < 6) { alert('Password must be at least 6 characters.'); return; }
+      if (!agree) { alert('Please agree to the Terms of use and Privacy policy.'); return; }
+
+      const createBtn = document.getElementById('create-btn');
+      createBtn.disabled = true;
+      createBtn.querySelector('span').textContent = 'Creating account...';
+
+      try {
+        // 1. Create the account in Firebase Authentication (password is stored securely by Firebase)
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const fullName = `${fname} ${lname}`;
+        await updateProfile(cred.user, { displayName: fullName });
+
+        // 2. Save the profile in Firestore (no password is ever saved here)
+        const isAdmin = email === ADMIN_EMAIL.toLowerCase();
+        await setDoc(doc(db, 'users', cred.user.uid), {
+          uid: cred.user.uid,
+          firstName: fname,
+          lastName: lname,
+          fullName: fullName,
+          email: email,
+          mobile: mobile,
+          address: address,
+          role: isAdmin ? 'admin' : 'resident',
+          createdAt: serverTimestamp()
+        });
+
+        // 3. Sign out so the person logs in from the login page, like before
+        await signOut(auth);
+        window.location.href = 'login.html?registered=true';
+
+      } catch (error) {
+        console.error('Registration Error:', error);
+        alert(friendlyAuthError(error.code));
+        createBtn.disabled = false;
+        createBtn.querySelector('span').textContent = 'Create account';
+      }
+    });
+  </script>
+
+</body>
+</html>
